@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+#      - legacy_backend
+      - auth_service
+      - geo_service
+      - profile_service
+      - session_service
+      - attendance_service
+      - analytics_service
+      - frontend
+
+#   legacy_backend:
+#     build:
+#       context: ./legacy_backend
+#       dockerfile: Dockerfile
+#     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+#     volumes:
+#       - ./legacy_backend:/app
+#     environment:
+#       - DEBUG=True
+#       - SECRET_KEY=dev-secret
+#       - ALLOWED_HOSTS=*
+#       - DATABASE_URL=postgres://digi_user:password@db:5432/digikeralam_db
+#     depends_on:
+#       - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/src:/app/src # Optional: for debugging if needed, but in prod we serve static
+    # ports:
+    #   - "3000:80" # Exposed via Gateway
+    # depends_on:
+    #   - gateway # Removed circular dependency
+
+  auth_service:
+    build:
+      context: ./services/auth-service
+      dockerfile: Dockerfile
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./services/auth-service:/app
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev-secret
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://digi_user:password@db:5432/digi_auth
+    depends_on:
+      - db
+
+  geo_service:
+    build:
+      context: ./services/geography-service
+      dockerfile: Dockerfile
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./services/geography-service:/app
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev-secret
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://digi_user:password@db:5432/digi_geo
+    depends_on:
+      - db
+
+  profile_service:
+    build:
+      context: ./services/profile-service
+      dockerfile: Dockerfile
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./services/profile-service:/app
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev-secret
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://digi_user:password@db:5432/digi_profile
+    depends_on:
+      - db
+
+  session_service:
+    build:
+      context: ./services/session-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./services/session-service:/app
+    ports:
+      - "8003:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev-secret
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://digi_user:password@db:5432/digi_session
+    depends_on:
+      - db
+
+  attendance_service:
+    build:
+      context: ./services/attendance-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./services/attendance-service:/app
+    ports:
+      - "8004:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev-secret
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://digi_user:password@db:5432/digi_attendance
+    depends_on:
+      - db
+
+  analytics_service:
+    build:
+      context: ./services/analytics-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./services/analytics-service:/app
+    ports:
+      - "8005:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=dev-secret
+      - ALLOWED_HOSTS=*
+      - DATABASE_URL=postgres://digi_user:password@db:5432/digi_analytics
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_USER=digi_user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=digikeralam_db
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  pg_data:

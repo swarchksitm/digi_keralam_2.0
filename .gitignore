@@ -1,1 +1,41 @@
+# System
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.env.*
+db.sqlite3
+local_settings.py
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# Docker
+.docker_temp/
+
+# Database Dumps & Backups
+*.sql
+*.sqlite3
+*.dump
+*.tar.gz
+
+# IDEs
+.idea/
+.vscode/
+
+# Logs
+*.log
