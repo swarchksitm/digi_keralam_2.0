@@ -10,7 +10,8 @@ const api = axios.create({
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
-        if (token) {
+        // Don't attach token for login/token endpoints to avoid 401s from expired tokens
+        if (token && !config.url?.includes('/login/') && !config.url?.includes('/token/')) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -30,5 +31,9 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+
+export const getUserProfile = () => api.get('/auth/profile/');
+export const updateUser = (data: any) => api.patch('/auth/profile/', data);
 
 export default api;

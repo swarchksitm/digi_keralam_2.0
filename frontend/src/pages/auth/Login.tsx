@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { AlertCircle } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
+import { getDashboardPath } from '../../utils/roleUtils';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
@@ -15,24 +16,7 @@ const Login: React.FC = () => {
 
     React.useEffect(() => {
         if (isAuthenticated && user) {
-            switch (user.role) {
-                case 'KSITM_SUPER_ADMIN':
-                case 'LSGD_STATE_ADMIN':
-                    navigate('/admin/dashboard');
-                    break;
-                case 'LSGD_DISTRICT_ADMIN':
-                    navigate('/district/dashboard');
-                    break;
-                case 'DISTRICT_MASTER_TRAINER':
-                case 'LSGI_FIELD_TRAINER':
-                    navigate('/trainer/dashboard');
-                    break;
-                case 'CITIZEN':
-                    navigate('/citizen/dashboard');
-                    break;
-                default:
-                    navigate('/');
-            }
+            navigate('/');
         }
     }, [isAuthenticated, user, navigate]);
 
@@ -44,6 +28,10 @@ const Login: React.FC = () => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
+
+        // Clear any existing tokens to prevent 401s from invalid headers
+        localStorage.removeItem('token');
+        localStorage.removeItem('refresh');
 
         try {
             // Adjust endpoint if needed (using 'token/' for simplejwt)
@@ -64,25 +52,8 @@ const Login: React.FC = () => {
 
             login(user, access);
 
-            // Role Based Redirect
-            switch (user.role) {
-                case 'KSITM_SUPER_ADMIN':
-                case 'LSGD_STATE_ADMIN':
-                    navigate('/admin/dashboard');
-                    break;
-                case 'LSGD_DISTRICT_ADMIN':
-                    navigate('/district/dashboard');
-                    break;
-                case 'DISTRICT_MASTER_TRAINER':
-                case 'LSGI_FIELD_TRAINER':
-                    navigate('/trainer/dashboard');
-                    break;
-                case 'CITIZEN':
-                    navigate('/citizen/dashboard');
-                    break;
-                default:
-                    navigate('/'); // Fallback
-            }
+            // Redirect to Role-Based Dashboard
+            navigate(getDashboardPath(user.role));
 
         } catch (err: any) {
             console.error(err);

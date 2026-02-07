@@ -36,7 +36,22 @@ All services are containerized and orchestrated via Docker Compose.
 - **Docker** & **Docker Compose**
 - **Git**
 
-### Installation
+### Local Setup (Recommended for Development)
+For quick local development without Docker, use the included setup scripts to install all dependencies (Frontend + Backend).
+
+**Windows (PowerShell)**:
+```powershell
+.\setup.ps1
+```
+
+**Linux / macOS (Bash)**:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+### Docker Installation
+
 
 1.  **Clone the Repository**
     ```bash

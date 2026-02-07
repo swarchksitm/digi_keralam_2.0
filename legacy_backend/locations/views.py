@@ -20,19 +20,41 @@ class BlockListView(generics.ListAPIView):
             queryset = queryset.filter(district_id=district_id)
         return queryset
 
-class LSGIListView(generics.ListAPIView):
+class LSGIListView(generics.ListCreateAPIView):
     queryset = LSGI.objects.all()
     serializer_class = LSGISerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     
     def get_queryset(self):
         queryset = LSGI.objects.all()
+        user = self.request.user
+
+        # Role-based filtering
+        if user.is_authenticated:
+            # Avoid circular import if possible, or use string check/User model
+            # For simplicity and robustness, we check the role string
+            if user.role == 'LSGD_DISTRICT_ADMIN' and hasattr(user, 'profile') and user.profile.district:
+                queryset = queryset.filter(district=user.profile.district)
+
         block_id = self.request.query_params.get('block')
         district_id = self.request.query_params.get('district')
         if block_id:
             queryset = queryset.filter(block_id=block_id)
         elif district_id:
             queryset = queryset.filter(district_id=district_id)
+        return queryset
+
+class LSGIDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = LSGI.objects.all()
+    serializer_class = LSGISerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        queryset = LSGI.objects.all()
+        user = self.request.user
+        if user.is_authenticated:
+             if user.role == 'LSGD_DISTRICT_ADMIN' and hasattr(user, 'profile') and user.profile.district:
+                queryset = queryset.filter(district=user.profile.district)
         return queryset
 
 class WardListView(generics.ListAPIView):

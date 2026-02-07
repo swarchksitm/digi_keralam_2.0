@@ -15,9 +15,9 @@ class AnalyticsViewSet(viewsets.ViewSet):
         sessions = TrainingSession.objects.all()
 
         # Filtering logic based on Role
-        if user.role == 'LSGD_STATE_ADMIN':
-            # State Admin sees all, aggregated by District
-            pass # No filter needed initially
+        if user.role in ['LSGD_STATE_ADMIN', 'KSITM_SUPER_ADMIN']:
+            # State Admin and Super Admin see all
+            pass 
         elif user.role == 'LSGD_DISTRICT_ADMIN':
             # District Admin sees only their district
             if hasattr(user, 'profile') and user.profile.district:

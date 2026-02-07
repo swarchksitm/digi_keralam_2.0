@@ -8,7 +8,7 @@ services:
     volumes:
       - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-#      - legacy_backend
+      #      - legacy_backend
       - auth_service
       - geo_service
       - profile_service
@@ -17,20 +17,20 @@ services:
       - analytics_service
       - frontend
 
-#   legacy_backend:
-#     build:
-#       context: ./legacy_backend
-#       dockerfile: Dockerfile
-#     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
-#     volumes:
-#       - ./legacy_backend:/app
-#     environment:
-#       - DEBUG=True
-#       - SECRET_KEY=dev-secret
-#       - ALLOWED_HOSTS=*
-#       - DATABASE_URL=postgres://digi_user:password@db:5432/digikeralam_db
-#     depends_on:
-#       - db
+  #   legacy_backend:
+  #     build:
+  #       context: ./legacy_backend
+  #       dockerfile: Dockerfile
+  #     command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+  #     volumes:
+  #       - ./legacy_backend:/app
+  #     environment:
+  #       - DEBUG=True
+  #       - SECRET_KEY=dev-secret
+  #       - ALLOWED_HOSTS=*
+  #       - DATABASE_URL=postgres://digi_user:password@db:5432/digikeralam_db
+  #     depends_on:
+  #       - db
 
   frontend:
     build:
@@ -145,6 +145,8 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
 
 volumes:
   pg_data:

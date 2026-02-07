@@ -6,12 +6,14 @@ import Landing from './pages/Landing';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Unauthorized from './pages/Unauthorized';
+import Accessibility from './pages/Accessibility';
 import AdminDashboard from './pages/dashboard/AdminDashboard';
 import DistrictDashboard from './pages/dashboard/DistrictDashboard';
 import TrainerDashboard from './pages/dashboard/TrainerDashboard';
 import CitizenDashboard from './pages/dashboard/CitizenDashboard';
 import SessionCreate from './pages/sessions/SessionCreate';
 import SessionAssign from './pages/sessions/SessionAssign';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -22,6 +24,12 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+        <Route path="/accessibility" element={<Accessibility />} />
+
+        {/* Protected Common Routes */}
+        <Route element={<RoleRoute allowedRoles={['KSITM_SUPER_ADMIN', 'LSGD_STATE_ADMIN', 'LSGD_DISTRICT_ADMIN', 'DISTRICT_MASTER_TRAINER', 'LSGI_FIELD_TRAINER', 'CITIZEN']} />}>
+          <Route path="/profile" element={<Profile />} />
+        </Route>
 
         {/* Protected Governance Routes */}
         <Route element={<RoleRoute allowedRoles={['KSITM_SUPER_ADMIN', 'LSGD_STATE_ADMIN']} />}>

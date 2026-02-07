@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { StatsCard } from '../../components/dashboard/StatsCard';
 import { BarChart3, CheckCircle, Map } from 'lucide-react';
+import { LSGIManager } from '../../components/dashboard/LSGIManager';
+import { UserManagement } from '../../components/dashboard/UserManagement';
 import api from '../../api/client';
 import { useAuthStore } from '../../auth/store';
 
@@ -36,7 +38,7 @@ const AdminDashboard: React.FC = () => {
     const getDashboardTitle = () => {
         if (user?.role === 'LSGD_STATE_ADMIN') return 'State Overview';
         if (user?.role === 'LSGD_DISTRICT_ADMIN') return 'District Overview';
-        if (user?.role === 'KSITM_SUPER_ADMIN') return 'Super Admin Console';
+        if (user?.role === 'KSITM_SUPER_ADMIN') return 'KSITM Console';
         return 'Dashboard';
     };
 
@@ -80,6 +82,30 @@ const AdminDashboard: React.FC = () => {
                             color="purple"
                             description="Unique Wards with at least one session"
                         />
+                    </div>
+                )}
+
+                {/* Hierarchical Management Views */}
+                {user?.role === 'KSITM_SUPER_ADMIN' && (
+                    <>
+                        <div className="mt-8">
+                            <UserManagement roleType="LSGD_STATE_ADMIN" title="State Admin Management" />
+                        </div>
+                        <div className="mt-8">
+                            <UserManagement roleType="LSGD_DISTRICT_ADMIN" title="District Admin Management" readOnly={true} />
+                        </div>
+                    </>
+                )}
+
+                {user?.role === 'LSGD_STATE_ADMIN' && (
+                    <div className="mt-8">
+                        <UserManagement roleType="LSGD_DISTRICT_ADMIN" title="District Admin Management" />
+                    </div>
+                )}
+
+                {user?.role === 'LSGD_DISTRICT_ADMIN' && (
+                    <div className="mt-8">
+                        <LSGIManager />
                     </div>
                 )}
 
