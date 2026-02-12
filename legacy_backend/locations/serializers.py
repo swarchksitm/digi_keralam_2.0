@@ -87,3 +87,4 @@ class WardSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ward
         fields = '__all__'
+        depth = 1

@@ -51,8 +51,8 @@ export const Footer: React.FC = () => {
                                 <MapPin className="h-5 w-5 text-primary-500 shrink-0" />
                                 <span>
                                     Kerala State IT Mission,<br />
-                                    ICT Campus, Vellayambalam,<br />
-                                    Thiruvananthapuram, Kerala - 695033
+                                    Pattom.P.O, Vrindavan Gardens, Saankethika,<br />
+                                    Thiruvananthapuram, Kerala-695004
                                 </span>
                             </li>
                             <li className="flex items-center gap-3">

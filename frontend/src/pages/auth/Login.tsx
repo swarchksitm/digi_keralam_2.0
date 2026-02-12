@@ -16,7 +16,7 @@ const Login: React.FC = () => {
 
     React.useEffect(() => {
         if (isAuthenticated && user) {
-            navigate('/');
+            navigate(getDashboardPath(user.role));
         }
     }, [isAuthenticated, user, navigate]);
 
@@ -111,6 +111,12 @@ const Login: React.FC = () => {
                             <div className="text-center text-sm text-gray-500 mt-4">
                                 Don't have an account?{' '}
                                 <Link to="/register" className="text-primary-600 hover:underline font-medium">
+                                    Register here
+                                </Link>
+                            </div>
+                            <div className="text-center text-sm text-gray-500 mt-2">
+                                Want to be a Field Trainer?{' '}
+                                <Link to="/register-trainer" className="text-primary-600 hover:underline font-medium">
                                     Register here
                                 </Link>
                             </div>

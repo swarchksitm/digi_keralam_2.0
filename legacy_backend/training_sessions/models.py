@@ -26,7 +26,7 @@ class TrainingSession(models.Model):
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    ward = models.ForeignKey(Ward, on_delete=models.CASCADE, related_name='training_sessions', help_text="Strict Ward Anchor")
+    ward = models.ForeignKey(Ward, on_delete=models.CASCADE, related_name='training_sessions', help_text="Strict Ward Anchor", null=True, blank=True)
     category = models.CharField(max_length=20, choices=Category.choices)
     proficiency = models.CharField(max_length=20, choices=Proficiency.choices)
     mode = models.CharField(max_length=10, choices=Mode.choices, default=Mode.OFFLINE)
@@ -46,7 +46,8 @@ class TrainingSession(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.title} ({self.ward.name})"
+        ward_name = self.ward.name if self.ward else 'No Ward'
+        return f"{self.title} ({ward_name})"
 
 class SessionAssignment(models.Model):
     session = models.ForeignKey(TrainingSession, on_delete=models.CASCADE, related_name='assignments')
@@ -67,9 +68,12 @@ class SessionAssignment(models.Model):
         if not hasattr(self.trainer, 'profile'):
              raise ValidationError("Trainer has no profile.")
         
-        trainer_ward = self.trainer.profile.ward
-        if trainer_ward and trainer_ward != self.session.ward:
-             raise ValidationError(f"Trainer is assigned to {trainer_ward}, cannot conduct session in {self.session.ward}")
+        if not self.session.ward:
+             return # Allow if session has no ward yet? Or strict?
+
+        trainer_wards = self.trainer.profile.wards.all()
+        if not trainer_wards.filter(id=self.session.ward.id).exists():
+             raise ValidationError(f"Trainer is not assigned to Ward {self.session.ward.name}.")
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -92,3 +96,30 @@ class Attendance(models.Model):
 
     class Meta:
         unique_together = ('session', 'citizen')
+
+class Resource(models.Model):
+    class ResourceType(models.TextChoices):
+        PDF = 'PDF', _('PDF Document')
+        VIDEO = 'VIDEO', _('Video')
+        Presentation = 'PPT', _('Presentation')
+        Spreadsheet = 'XLS', _('Spreadsheet')
+        OTHER = 'OTHER', _('Other')
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    file = models.FileField(upload_to='resources/', blank=True, null=True)
+    external_url = models.URLField(blank=True, null=True, help_text="Link if not uploading file")
+    
+    session = models.ForeignKey(TrainingSession, on_delete=models.CASCADE, related_name='resources', null=True, blank=True)
+    
+    resource_type = models.CharField(max_length=10, choices=ResourceType.choices, default=ResourceType.PDF)
+    
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='uploaded_resources'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title

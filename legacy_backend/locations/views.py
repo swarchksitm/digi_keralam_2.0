@@ -44,6 +44,17 @@ class LSGIListView(generics.ListCreateAPIView):
             queryset = queryset.filter(district_id=district_id)
         return queryset
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'LSGD_DISTRICT_ADMIN':
+            # Force district to match admin's district
+            if not (hasattr(user, 'profile') and user.profile.district):
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({"detail": "District Admin has no assigned district."})
+            serializer.save(district=user.profile.district)
+        else:
+            serializer.save()
+
 class LSGIDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = LSGI.objects.all()
     serializer_class = LSGISerializer

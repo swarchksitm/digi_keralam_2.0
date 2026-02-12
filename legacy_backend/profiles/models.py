@@ -12,7 +12,10 @@ class UserProfile(models.Model):
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
     block = models.ForeignKey(Block, on_delete=models.SET_NULL, null=True, blank=True)
     lsgi = models.ForeignKey(LSGI, on_delete=models.SET_NULL, null=True, blank=True)
-    ward = models.ForeignKey(Ward, on_delete=models.SET_NULL, null=True, blank=True)
+    wards = models.ManyToManyField(Ward, blank=True, related_name='residents_profiles')
+
+    age = models.IntegerField(null=True, blank=True)
+    highest_qualification = models.CharField(max_length=255, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -25,7 +28,7 @@ class UserProfile(models.Model):
         if role == UserRole.LSGD_DISTRICT_ADMIN or role == UserRole.DISTRICT_MASTER_TRAINER:
             if not self.district:
                 raise ValidationError("District assignment is required for this role.")
-            if self.block or self.lsgi or self.ward:
+            if self.block or self.lsgi or self.wards.exists():
                 raise ValidationError("District-level roles cannot be bound to lower geographies.")
 
         # Add more rules as needed (Block, LSGI, Ward levels)

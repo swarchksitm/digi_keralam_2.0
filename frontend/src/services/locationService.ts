@@ -67,5 +67,19 @@ export const LocationService = {
 
     deleteLSGI: async (id: number) => {
         await api.delete(`/locations/lsgis/${id}/`);
+    },
+
+    // Wards
+    getWards: async (lsgiId: number) => {
+        const response = await api.get<Ward[]>('/locations/wards/', { params: { lsgi: lsgiId } });
+        return response.data;
     }
 };
+
+export interface Ward {
+    id: number;
+    ward_number: number;
+    name: string;
+    code: string;
+    lsgi: number;
+}

@@ -1,8 +1,9 @@
 import React from 'react';
 import type { TrainingSession } from '../../types/session';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
-import { Calendar, MapPin, Users, Wifi } from 'lucide-react';
+import { Calendar, MapPin, Users, Wifi, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import { getMediaUrl } from '../../utils/url';
 
 interface SessionListProps {
     sessions: TrainingSession[];
@@ -61,8 +62,11 @@ export const SessionList: React.FC<SessionListProps> = ({
                             <div className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4 text-gray-400" />
                                 <span>
-                                    {/* Handle ward if object or ID - simple display for now */}
-                                    Ward {typeof session.ward === 'object' ? session.ward.number : session.ward}
+                                    {session.ward ? (
+                                        typeof session.ward === 'object' ?
+                                            `Ward ${session.ward.number || session.ward.name}` :
+                                            `Ward ${session.ward}`
+                                    ) : 'No Ward Assigned'}
                                     {session.venue && ` • ${session.venue}`}
                                 </span>
                             </div>
@@ -83,6 +87,27 @@ export const SessionList: React.FC<SessionListProps> = ({
                                 </span>
                             </div>
 
+                            {/* Resources Section */}
+                            {session.resources && session.resources.length > 0 && (
+                                <div className="mt-3 pt-3 border-t border-gray-100">
+                                    <h4 className="text-xs font-semibold text-gray-700 mb-2">Training Materials:</h4>
+                                    <div className="space-y-1">
+                                        {session.resources.map((res: any) => (
+                                            <a
+                                                key={res.id}
+                                                href={getMediaUrl(res.file)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 text-xs text-blue-600 hover:underline p-1 hover:bg-blue-50 rounded"
+                                            >
+                                                <FileText className="h-3 w-3" />
+                                                {res.title || 'View Document'}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {renderAction && (
                                 <div className="pt-4 border-t border-gray-100">
                                     {renderAction(session)}
@@ -92,6 +117,6 @@ export const SessionList: React.FC<SessionListProps> = ({
                     </Card>
                 ))}
             </div>
-        </div>
+        </div >
     );
 };

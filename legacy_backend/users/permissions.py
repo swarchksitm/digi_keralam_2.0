@@ -15,3 +15,11 @@ class IsStateAdmin(permissions.BasePermission):
 class IsDistrictAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.role == User.Role.LSGD_DISTRICT_ADMIN
+
+class IsLsgiAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.role == User.Role.LSGI_ADMIN
+
+class IsMasterTrainer(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.role == User.Role.DISTRICT_MASTER_TRAINER

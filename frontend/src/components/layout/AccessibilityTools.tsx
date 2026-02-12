@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAccessibilityStore } from '../../store/accessibilityStore';
-import { Sun, Moon, Eye, Monitor } from 'lucide-react';
+import { Moon, Eye, Monitor } from 'lucide-react';
 
 export const AccessibilityTools: React.FC = () => {
     const {
@@ -30,11 +30,11 @@ export const AccessibilityTools: React.FC = () => {
     }, [fontSize, theme]);
 
     return (
-        <div className="flex items-center gap-3 bg-gray-100 rounded-lg px-2 py-1 border border-gray-200" role="group" aria-label="Accessibility Tools">
-            <div className="flex items-center gap-1 pr-3 border-r border-gray-300">
+        <div className="flex items-center gap-4" role="group" aria-label="Accessibility Tools">
+            <div className="flex items-center gap-1">
                 <button
                     onClick={decreaseFont}
-                    className="p-1 hover:bg-gray-200 rounded text-xs font-bold w-6 h-6 flex items-center justify-center text-gray-700"
+                    className="p-1 hover:text-primary-700 rounded text-xs font-bold w-6 h-6 flex items-center justify-center transition-colors"
                     aria-label="Decrease Font Size"
                     title="Decrease Font Size"
                 >
@@ -42,7 +42,7 @@ export const AccessibilityTools: React.FC = () => {
                 </button>
                 <button
                     onClick={resetFont}
-                    className="p-1 hover:bg-gray-200 rounded text-xs font-bold w-6 h-6 flex items-center justify-center text-gray-700"
+                    className="p-1 hover:text-primary-700 rounded text-xs font-bold w-6 h-6 flex items-center justify-center transition-colors"
                     aria-label="Reset Font Size"
                     title="Reset Font Size"
                 >
@@ -50,13 +50,15 @@ export const AccessibilityTools: React.FC = () => {
                 </button>
                 <button
                     onClick={increaseFont}
-                    className="p-1 hover:bg-gray-200 rounded text-sm font-bold w-6 h-6 flex items-center justify-center text-gray-700"
+                    className="p-1 hover:text-primary-700 rounded text-sm font-bold w-6 h-6 flex items-center justify-center transition-colors"
                     aria-label="Increase Font Size"
                     title="Increase Font Size"
                 >
                     A+
                 </button>
             </div>
+
+
 
             <div className="flex items-center gap-1">
                 <button

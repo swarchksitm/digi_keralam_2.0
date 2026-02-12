@@ -150,6 +150,12 @@ const Register: React.FC = () => {
                                     Sign in here
                                 </Link>
                             </div>
+                            <div className="text-center text-sm text-gray-500 pt-2 border-t border-gray-100">
+                                Want to join as a Field Trainer?{' '}
+                                <Link to="/register-trainer" className="text-blue-600 hover:underline font-medium">
+                                    Register as Trainer
+                                </Link>
+                            </div>
                         </form>
                     </CardContent>
                 </Card>

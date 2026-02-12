@@ -10,10 +10,10 @@ interface User {
     last_name: string;
     phone?: string;
     profile?: {
-        district: number | null;
-        block: number | null;
-        lsgi: number | null;
-        ward: number | null;
+        district: number | { id: number; name: string } | null;
+        block: number | { id: number; name: string } | null;
+        lsgi: number | { id: number; name: string } | null;
+        wards: (number | { id: number; name: string })[] | null;
     };
 }
 

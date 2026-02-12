@@ -15,6 +15,10 @@ export interface AdminUser {
             id: number;
             name: string;
         } | null;
+        lsgi?: {
+            id: number;
+            name: string;
+        } | null;
     };
 }
 

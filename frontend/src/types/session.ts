@@ -2,6 +2,11 @@ export interface Ward {
     id: number;
     number: number;
     name: string;
+    lsgi: {
+        id: number;
+        name: string;
+        district_id?: number;
+    };
 }
 
 export interface TrainingSession {
@@ -16,4 +21,12 @@ export interface TrainingSession {
     date_time: string;
     venue: string;
     is_assigned?: boolean;
+    attendees_count?: number;
+    trainer_name?: string | null;
+    resources?: {
+        id: number;
+        title: string;
+        file: string;
+        resource_type: string;
+    }[];
 }

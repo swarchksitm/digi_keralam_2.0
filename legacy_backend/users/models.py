@@ -13,7 +13,7 @@ class User(AbstractUser):
         
         # Trainer Roles (Delivery)
         STATE_SUPER_TRAINER = 'STATE_SUPER_TRAINER', _('State Level Super Trainer')
-        DISTRICT_MASTER_TRAINER = 'DISTRICT_MASTER_TRAINER', _('District Level Master Trainer')
+        DISTRICT_MASTER_TRAINER = 'DISTRICT_MASTER_TRAINER', _('LSGI Master Trainer')
         BLOCK_TRAINER = 'BLOCK_TRAINER', _('Block/Assembly Level Trainer')
         LSGI_FIELD_TRAINER = 'LSGI_FIELD_TRAINER', _('LSGI Field Level Trainer')
         

@@ -20,8 +20,21 @@ export const LSGIManager: React.FC = () => {
     const { user } = useAuthStore();
 
     useEffect(() => {
-        if (user?.role === 'LSGD_DISTRICT_ADMIN' && user.profile?.district) {
-            setSelectedDistrict(user.profile.district);
+        if ((user?.role === 'LSGD_DISTRICT_ADMIN' || user?.role === 'DISTRICT_MASTER_TRAINER') && user.profile?.district) {
+            // Handle if district is object (depth=1 from serializer) or ID
+            const dist = user.profile.district;
+            let distId: number | undefined;
+
+            if (typeof dist === 'object' && dist !== null && 'id' in dist) {
+                distId = (dist as any).id;
+            } else if (typeof dist === 'number') {
+                distId = dist;
+            }
+
+            if (distId) {
+                console.log("Auto-selecting district:", distId);
+                setSelectedDistrict(distId);
+            }
         }
     }, [user]);
 
@@ -199,9 +212,6 @@ export const LSGIManager: React.FC = () => {
                 </div>
 
 
-
-                // ... existing code ...
-
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 bg-gray-50 p-4 rounded-xl">
                     <div className="flex-1">
@@ -213,7 +223,7 @@ export const LSGIManager: React.FC = () => {
                                 setSelectedDistrict(Number(e.target.value));
                                 setSelectedType(''); // Reset type when district changes
                             }}
-                            disabled={user?.role === 'LSGD_DISTRICT_ADMIN'}
+                            disabled={user?.role === 'LSGD_DISTRICT_ADMIN' || user?.role === 'DISTRICT_MASTER_TRAINER'}
                         >
                             <option value="">-- Choose District --</option>
                             {districts.map(d => (
@@ -255,9 +265,9 @@ export const LSGIManager: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto min-h-[300px]">
-                {!searchTerm && (!selectedDistrict || !selectedType) ? (
+                {(!filteredLSGIs.length && !searchTerm && (!selectedDistrict)) ? (
                     <div className="flex flex-col items-center justify-center h-40 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                        <p>Please select a **District** and **Type** to view LSGIs.</p>
+                        <p>Please select a **District** to view LSGIs.</p>
                     </div>
                 ) : (
                     <table className="w-full text-sm text-left">
@@ -352,9 +362,7 @@ export const LSGIManager: React.FC = () => {
                                 options={[
                                     { value: 'GP', label: 'Grama Panchayat' },
                                     { value: 'MUNICIPALITY', label: 'Municipality' },
-                                    { value: 'CORPORATION', label: 'Corporation' },
-                                    { value: 'BP', label: 'Block Panchayat' },
-                                    { value: 'DP', label: 'District Panchayat' }
+                                    { value: 'CORPORATION', label: 'Corporation' }
                                 ]}
                             />
                         </div>

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Navbar } from '../components/layout/Navbar';
-import { Footer } from '../components/layout/Footer';
 import { Button } from '../components/ui/Button';
 import { Shield, Brain, Lightbulb, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -124,7 +123,6 @@ const Landing: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <Footer />
         </div>
     );
 };

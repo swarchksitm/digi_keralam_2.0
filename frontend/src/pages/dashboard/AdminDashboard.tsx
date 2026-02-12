@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
-import { StatsCard } from '../../components/dashboard/StatsCard';
-import { BarChart3, CheckCircle, Map } from 'lucide-react';
-import { LSGIManager } from '../../components/dashboard/LSGIManager';
-import { UserManagement } from '../../components/dashboard/UserManagement';
 import api from '../../api/client';
 import { useAuthStore } from '../../auth/store';
+import { DistrictAdminDashboard } from './DistrictAdminDashboard';
+import { SuperAdminDashboard } from './SuperAdminDashboard';
+import { StateAdminDashboard } from './StateAdminDashboard';
+
+import { MasterTrainerDashboard } from './MasterTrainerDashboard';
 
 interface AnalyticsSummary {
     total_sessions: number;
     completed_sessions: number;
     wards_covered: number;
+    total_attendees?: number;
 }
 
 const AdminDashboard: React.FC = () => {
@@ -24,9 +26,13 @@ const AdminDashboard: React.FC = () => {
             try {
                 const response = await api.get('/training/analytics/summary/');
                 setStats(response.data);
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Failed to load analytics", err);
-                setError("Failed to load dashboard data.");
+                const msg = err.response?.data?.error || err.message || "Failed to load dashboard data.";
+                if (err.response?.data?.trace) {
+                    console.error("Backend Trace:", err.response.data.trace);
+                }
+                setError(msg);
             } finally {
                 setIsLoading(false);
             }
@@ -38,6 +44,7 @@ const AdminDashboard: React.FC = () => {
     const getDashboardTitle = () => {
         if (user?.role === 'LSGD_STATE_ADMIN') return 'State Overview';
         if (user?.role === 'LSGD_DISTRICT_ADMIN') return 'District Overview';
+        if (user?.role === 'DISTRICT_MASTER_TRAINER') return 'Master Trainer Overview';
         if (user?.role === 'KSITM_SUPER_ADMIN') return 'KSITM Console';
         return 'Dashboard';
     };
@@ -52,64 +59,33 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {error && (
-                    <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-md">
+                    <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-md whitespace-pre-wrap">
                         {error}
                     </div>
                 )}
 
-                {isLoading ? (
-                    <div className="text-center py-12 text-gray-500">Loading analytics...</div>
-                ) : stats && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <StatsCard
-                            title="Total Sessions"
-                            value={stats.total_sessions}
-                            icon={BarChart3}
-                            color="blue"
-                            description="All scheduled and completed sessions"
-                        />
-                        <StatsCard
-                            title="Completed Sessions"
-                            value={stats.completed_sessions}
-                            icon={CheckCircle}
-                            color="green"
-                            description="Sessions marked as completed"
-                        />
-                        <StatsCard
-                            title="Total Coverage"
-                            value={stats.wards_covered}
-                            icon={Map}
-                            color="purple"
-                            description="Unique Wards with at least one session"
-                        />
-                    </div>
+                {/* Global Loading State */}
+                {isLoading && (
+                    <div className="text-center py-12 text-gray-500">Loading dashboard...</div>
                 )}
 
-                {/* Hierarchical Management Views */}
-                {user?.role === 'KSITM_SUPER_ADMIN' && (
+                {/* Role-Based Dashboard Rendering */}
+                {!isLoading && (
                     <>
-                        <div className="mt-8">
-                            <UserManagement roleType="LSGD_STATE_ADMIN" title="State Admin Management" />
-                        </div>
-                        <div className="mt-8">
-                            <UserManagement roleType="LSGD_DISTRICT_ADMIN" title="District Admin Management" readOnly={true} />
-                        </div>
+                        {user?.role === 'KSITM_SUPER_ADMIN' && <SuperAdminDashboard />}
+
+
+                        {user?.role === 'LSGD_STATE_ADMIN' && <StateAdminDashboard />}
+
+                        {user?.role === 'LSGD_DISTRICT_ADMIN' && (
+                            <DistrictAdminDashboard stats={stats} isLoading={isLoading} />
+                        )}
+
+                        {user?.role === 'DISTRICT_MASTER_TRAINER' && (
+                            <MasterTrainerDashboard stats={stats} />
+                        )}
                     </>
                 )}
-
-                {user?.role === 'LSGD_STATE_ADMIN' && (
-                    <div className="mt-8">
-                        <UserManagement roleType="LSGD_DISTRICT_ADMIN" title="District Admin Management" />
-                    </div>
-                )}
-
-                {user?.role === 'LSGD_DISTRICT_ADMIN' && (
-                    <div className="mt-8">
-                        <LSGIManager />
-                    </div>
-                )}
-
-                {/* Future: Add District/Block breakdown table here */}
 
             </div>
         </div>
