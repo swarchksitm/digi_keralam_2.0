@@ -1,21 +1,30 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../ui/Button';
 import { Globe } from 'lucide-react';
 import { useAuthStore } from '../../auth/store';
 import { AccessibilityTools } from './AccessibilityTools';
 import { UserMenu } from './UserMenu';
 import { getDashboardPath } from '../../utils/roleUtils';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export const Navbar: React.FC = () => {
 
     const { isAuthenticated, user } = useAuthStore();
+    const { language, setLanguage } = useLanguage();
+
+    const location = useLocation();
+    const isLoginPage = location.pathname === '/login';
+
+    const toggleLanguage = () => {
+        setLanguage(language === 'en' ? 'mal' : 'en');
+    };
 
     return (
         <nav className="glass sticky top-0 z-50 font-sans border-b border-white/20 transition-all duration-300">
             {/* Top Bar for Government Branding */}
             <div className="border-b border-gray-100/50 hidden sm:block bg-white/50 backdrop-blur-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between">
+                <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <a href="https://kerala.gov.in/" target="_blank" rel="noopener noreferrer">
                             <img
@@ -38,19 +47,22 @@ export const Navbar: React.FC = () => {
                             Skip to Main Content
                         </a>
 
-                        <button className="flex items-center gap-1.5 hover:text-primary-700 transition-colors">
-                            <Globe className="h-3.5 w-3.5" />
-                            <span>English / മലയാളം</span>
-                        </button>
-
-
+                        {!isLoginPage && (
+                            <button
+                                onClick={toggleLanguage}
+                                className={`flex items-center gap-1.5 transition-colors ${language === 'mal' ? 'text-primary-700 font-bold' : 'hover:text-primary-700'}`}
+                            >
+                                <Globe className="h-3.5 w-3.5" />
+                                <span>{language === 'en' ? 'മലയാളം' : 'English'}</span>
+                            </button>
+                        )}
 
                         <AccessibilityTools />
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center gap-4">
                         {/* Logo Area */}
@@ -65,7 +77,7 @@ export const Navbar: React.FC = () => {
                                     className="h-10 w-auto"
                                 />
                                 <div className="flex flex-col">
-                                    <span className="text-xl font-bold text-primary-900 leading-none tracking-tight group-hover:text-primary-700 transition-colors">
+                                    <span className="text-lg sm:text-xl font-bold text-primary-900 leading-none tracking-tight group-hover:text-primary-700 transition-colors">
                                         Digi Keralam 2.0
                                     </span>
                                     <span className="text-xs text-secondary-600 font-medium tracking-wide mt-0.5">
@@ -81,13 +93,13 @@ export const Navbar: React.FC = () => {
 
                         {isAuthenticated ? (
                             <UserMenu />
-                        ) : (
+                        ) : !isLoginPage ? (
                             <Link to="/login">
                                 <Button variant="primary" size="md" className="rounded-full shadow-apple hover:shadow-lg transition-all duration-300">
                                     Login
                                 </Button>
                             </Link>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </div>

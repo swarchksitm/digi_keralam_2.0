@@ -4,6 +4,7 @@ import { StatsCard } from '../../components/dashboard/StatsCard';
 import { Users, UserCheck, Calendar, MapPin, TrendingUp, Award, Building2 } from 'lucide-react';
 import { UserManagement } from '../../components/dashboard/UserManagement';
 import api from '../../api/client';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface StateStats {
     attendance: {
@@ -34,6 +35,7 @@ interface StateAdminDashboardProps {
 
 export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats: propStats, isLoading: propIsLoading }) => {
     const { user } = useAuthStore();
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'DISTRICTS'>('OVERVIEW');
     const [stats, setStats] = useState<StateStats | null>(null);
     const [isLoading, setIsLoading] = useState(propIsLoading ?? true);
@@ -63,7 +65,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
             case 'DISTRICTS':
                 return (
                     <div>
-                        <UserManagement roleType="LSGD_DISTRICT_ADMIN" title="District Admin Management" />
+                        <UserManagement roleType="LSGD_DISTRICT_ADMIN" title={t('dashboard.district_management')} />
                     </div>
                 );
             default:
@@ -72,7 +74,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                         {isLoading && (
                             <div className="text-center py-20">
                                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-                                <p className="mt-4 text-gray-600">Loading state analytics...</p>
+                                <p className="mt-4 text-gray-600">{t('common.loading')}</p>
                             </div>
                         )}
 
@@ -86,102 +88,102 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                             <>
                                 {/* Trainer Statistics */}
                                 <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Trainer Network</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.trainer_network')}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <StatsCard
-                                            title="Master Trainers"
+                                            title={t('dashboard.master_trainers')}
                                             value={stats.trainers.master_trainers}
                                             icon={Award}
                                             color="purple"
-                                            description="District-level coordinators"
+                                            description={t('dashboard.desc_master_trainers')}
                                         />
                                         <StatsCard
-                                            title="Field Trainers"
+                                            title={t('dashboard.field_trainers')}
                                             value={stats.trainers.field_trainers}
                                             icon={UserCheck}
                                             color="blue"
-                                            description="LSGI-level trainers"
+                                            description={t('dashboard.desc_field_trainers')}
                                         />
                                         <StatsCard
-                                            title="Total Trainers"
+                                            title={t('dashboard.total_trainers')}
                                             value={stats.trainers.total_trainers}
                                             icon={Users}
                                             color="green"
-                                            description="Active training workforce"
+                                            description={t('dashboard.desc_total_trainers')}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Attendance Statistics */}
                                 <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Citizen Participation</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.citizen_participation')}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <StatsCard
-                                            title="Total Attendance Records"
+                                            title={t('dashboard.total_attendance')}
                                             value={stats.attendance.total_attendance_records}
                                             icon={TrendingUp}
                                             color="orange"
-                                            description="All training participations"
+                                            description={t('dashboard.desc_total_attendance')}
                                         />
                                         <StatsCard
-                                            title="Unique Citizens Trained"
+                                            title={t('dashboard.unique_citizens')}
                                             value={stats.attendance.unique_citizens_attended}
                                             icon={Users}
                                             color="blue"
-                                            description="Individual beneficiaries"
+                                            description={t('dashboard.desc_unique_citizens')}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Session Statistics */}
                                 <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Training Sessions</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.training_sessions')}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <StatsCard
-                                            title="Total Sessions"
+                                            title={t('dashboard.total_sessions')}
                                             value={stats.sessions.total}
                                             icon={Calendar}
                                             color="purple"
-                                            description="All training events"
+                                            description={t('dashboard.desc_total_sessions')}
                                         />
                                         <StatsCard
-                                            title="Scheduled"
+                                            title={t('dashboard.scheduled')}
                                             value={stats.sessions.scheduled}
                                             icon={Calendar}
                                             color="blue"
-                                            description="Upcoming sessions"
+                                            description={t('dashboard.desc_scheduled')}
                                         />
                                         <StatsCard
-                                            title="Completed"
+                                            title={t('dashboard.completed')}
                                             value={stats.sessions.completed}
                                             icon={Calendar}
                                             color="green"
-                                            description="Finished sessions"
+                                            description={t('dashboard.desc_completed')}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Coverage Statistics */}
                                 <div className="mb-8">
-                                    <h2 className="text-xl font-bold text-gray-900 mb-4">Geographic Coverage</h2>
+                                    <h2 className="text-xl font-bold text-gray-900 mb-4">{t('dashboard.geographic_coverage')}</h2>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <StatsCard
-                                            title="Districts Covered"
+                                            title={t('dashboard.districts_covered')}
                                             value={stats.coverage.districts_covered}
                                             icon={MapPin}
                                             color="orange"
-                                            description={`Out of ${stats.coverage.total_districts} districts`}
+                                            description={`${t('dashboard.desc_districts_covered')} (${stats.coverage.total_districts})`}
                                         />
                                         <StatsCard
-                                            title="LSGIs Reached"
+                                            title={t('dashboard.lsgis_reached')}
                                             value={stats.coverage.lsgis_covered}
                                             icon={MapPin}
                                             color="green"
-                                            description="Local bodies with sessions"
+                                            description={t('dashboard.desc_lsgis_covered')}
                                         />
                                         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className="text-sm font-medium text-gray-600">Coverage Rate</span>
+                                                <span className="text-sm font-medium text-gray-600">{t('dashboard.coverage_rate')}</span>
                                                 <MapPin className="h-5 w-5 text-green-600" />
                                             </div>
                                             <div className="text-3xl font-bold text-gray-900 mb-1">
@@ -189,7 +191,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                                     ? Math.round((stats.coverage.districts_covered / stats.coverage.total_districts) * 100)
                                                     : 0}%
                                             </div>
-                                            <p className="text-sm text-gray-500">District penetration</p>
+                                            <p className="text-sm text-gray-500">{t('dashboard.desc_coverage_rate')}</p>
                                             <div className="mt-3 bg-gray-200 rounded-full h-2">
                                                 <div
                                                     className="bg-green-600 h-2 rounded-full transition-all"
@@ -213,17 +215,17 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                         <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-4">
                                             <Building2 className="h-6 w-6" />
                                         </div>
-                                        <h3 className="font-semibold text-gray-900 mb-1">District Management</h3>
-                                        <p className="text-sm text-gray-500">Manage District Admins across Kerala</p>
+                                        <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.district_management')}</h3>
+                                        <p className="text-sm text-gray-500">{t('dashboard.desc_district_management')}</p>
                                     </div>
                                 </div>
 
                                 {/* Summary Card */}
                                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mt-8">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-4">Program Summary</h3>
+                                    <h3 className="text-lg font-bold text-gray-900 mb-4">{t('dashboard.program_summary')}</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                         <div className="flex justify-between py-2 border-b border-gray-100">
-                                            <span className="text-gray-600">Average Attendance per Session:</span>
+                                            <span className="text-gray-600">{t('dashboard.avg_attendance')}:</span>
                                             <span className="font-semibold text-gray-900">
                                                 {stats.sessions.total > 0
                                                     ? Math.round(stats.attendance.total_attendance_records / stats.sessions.total)
@@ -231,7 +233,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             </span>
                                         </div>
                                         <div className="flex justify-between py-2 border-b border-gray-100">
-                                            <span className="text-gray-600">Sessions per District:</span>
+                                            <span className="text-gray-600">{t('dashboard.sessions_per_district')}:</span>
                                             <span className="font-semibold text-gray-900">
                                                 {stats.coverage.districts_covered > 0
                                                     ? Math.round(stats.sessions.total / stats.coverage.districts_covered)
@@ -239,7 +241,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             </span>
                                         </div>
                                         <div className="flex justify-between py-2 border-b border-gray-100">
-                                            <span className="text-gray-600">Trainer to Citizen Ratio:</span>
+                                            <span className="text-gray-600">{t('dashboard.trainer_ratio')}:</span>
                                             <span className="font-semibold text-gray-900">
                                                 1:{stats.trainers.total_trainers > 0
                                                     ? Math.round(stats.attendance.unique_citizens_attended / stats.trainers.total_trainers)
@@ -247,7 +249,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             </span>
                                         </div>
                                         <div className="flex justify-between py-2 border-b border-gray-100">
-                                            <span className="text-gray-600">Completion Rate:</span>
+                                            <span className="text-gray-600">{t('dashboard.completion_rate')}:</span>
                                             <span className="font-semibold text-gray-900">
                                                 {stats.sessions.total > 0
                                                     ? Math.round((stats.sessions.completed / stats.sessions.total) * 100)
@@ -268,8 +270,8 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
             {/* Tabs Navigation */}
             <div className="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit overflow-x-auto">
                 {[
-                    { id: 'OVERVIEW', label: 'State Overview' },
-                    { id: 'DISTRICTS', label: 'District Management' }
+                    { id: 'OVERVIEW', label: t('dashboard.state_overview') },
+                    { id: 'DISTRICTS', label: t('dashboard.district_management') }
                 ].map((tab) => (
                     <button
                         key={tab.id}

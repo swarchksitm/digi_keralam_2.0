@@ -1,14 +1,17 @@
 import api from '../api/client';
 
+
 export interface District {
     id: number;
     name: string;
+    name_mal?: string;
     code: string;
 }
 
 export interface Block {
     id: number;
     name: string;
+    name_mal?: string;
     code: string;
     district: number;
 }
@@ -16,6 +19,7 @@ export interface Block {
 export interface LSGI {
     id: number;
     name: string;
+    name_mal?: string;
     lsgi_type: 'GP' | 'MUNICIPALITY' | 'CORPORATION' | 'BP' | 'DP';
     block: number | null;
     district: number;
@@ -50,7 +54,7 @@ export const LocationService = {
     },
 
     // LSGIs
-    getLSGIs: async (filters: { district?: number; block?: number } = {}) => {
+    getLSGIs: async (filters: { district?: number; block?: number; lsgi_type?: string } = {}) => {
         const response = await api.get<LSGI[]>('/locations/lsgis/', { params: filters });
         return response.data;
     },
@@ -80,6 +84,7 @@ export interface Ward {
     id: number;
     ward_number: number;
     name: string;
+    name_mal?: string;
     code: string;
     lsgi: number;
 }

@@ -1,5 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../auth/store';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getLocalizedName } from '../../utils/languageUtils';
 
 import { getLSGINames } from '../../data/lsgi_master';
 import { LocationService, type LSGI, type District, type Block } from '../../services/locationService';
@@ -10,6 +13,7 @@ import { Select } from '../ui/Select';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 
 export const LSGIManager: React.FC = () => {
+    const { t, language } = useLanguage();
     const [lsgis, setLsgis] = useState<LSGI[]>([]);
     const [districts, setDistricts] = useState<District[]>([]);
     const [blocks, setBlocks] = useState<Block[]>([]);
@@ -133,27 +137,33 @@ export const LSGIManager: React.FC = () => {
             console.error("Failed to save", error);
             const errorMsg = error.response?.data
                 ? JSON.stringify(error.response.data)
-                : "Failed to save changes. Please try again.";
-            alert(`Error: ${errorMsg}`);
+                : t('dashboard.error_save_lsgi');
+            alert(`${t('common.error')}: ${errorMsg}`);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this LSGI?")) return;
+        if (!confirm(t('dashboard.confirm_delete_lsgi'))) return;
         try {
             await LocationService.deleteLSGI(id);
             setLsgis(prev => prev.filter(item => item.id !== id));
         } catch (error) {
             console.error("Failed to delete", error);
-            alert("Failed to delete LSGI.");
+            alert(t('dashboard.error_delete_lsgi'));
         }
     };
 
     // Derived helpers for display
-    const getDistrictName = (id: number) => districts.find(d => d.id === id)?.name || id;
-    const getBlockName = (id: number | null) => blocks.find(b => b.id === id)?.name || '-';
+    const getDistrictName = (id: number) => {
+        const d = districts.find(d => d.id === id);
+        return d ? getLocalizedName(d, language) : id;
+    };
+    const getBlockName = (id: number | null) => {
+        const b = blocks.find(b => b.id === id);
+        return b ? getLocalizedName(b, language) : '-';
+    };
 
     // Helper to get district name string for Master List lookup
     const getDistrictNameStr = (id: number) => districts.find(d => d.id === id)?.name || '';
@@ -177,11 +187,16 @@ export const LSGIManager: React.FC = () => {
     // State for Filter Drill-down
     const [selectedDistrict, setSelectedDistrict] = useState<number | undefined>(undefined);
     const [selectedType, setSelectedType] = useState<LSGI['lsgi_type'] | ''>('');
+    const [activeTab, setActiveTab] = useState<'PENDING' | 'ASSIGNED'>('PENDING');
 
     const filteredLSGIs = lsgis.filter(item => {
+        // Tab Filter
+        if (activeTab === 'PENDING' && item.admin_info) return false;
+        if (activeTab === 'ASSIGNED' && !item.admin_info) return false;
+
         // Search term override
         if (searchTerm) {
-            return item.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return getLocalizedName(item, language).toLowerCase().includes(searchTerm.toLowerCase());
         }
 
         // Strict Drill-down
@@ -193,7 +208,7 @@ export const LSGIManager: React.FC = () => {
 
     // Unified Render
     if (isLoading) {
-        return <div className="py-8 text-center text-gray-500">Loading LSGD Data...</div>;
+        return <div className="py-8 text-center text-gray-500">{t('common.loading')}</div>;
     }
 
     const availableBlocks = blocks.filter(b => b.district === Number(formData.district));
@@ -203,19 +218,48 @@ export const LSGIManager: React.FC = () => {
             <div className="flex flex-col mb-6 gap-4">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Manage LSGIs</h2>
-                        <p className="text-sm text-gray-500">Add, edit, or remove Local Self Govt Institutions</p>
+                        <h2 className="text-xl font-bold text-gray-900">{t('dashboard.title_manage_lsgis')}</h2>
+                        <p className="text-sm text-gray-500">{t('dashboard.desc_manage_lsgis_sub')}</p>
                     </div>
+                    {/* Only show Add New if NOT District Admin, or if District Admin needs to create manual LSGIs */}
                     <Button onClick={() => handleOpenModal()} className="rounded-full gap-2">
-                        <Plus className="h-4 w-4" /> Add New
+                        <Plus className="h-4 w-4" /> {t('common.add_new')}
                     </Button>
                 </div>
 
 
+                {/* Tabs for Filtering */}
+                <div className="flex border-b border-gray-100 mb-6">
+                    <button
+                        onClick={() => setActiveTab('PENDING')}
+                        className={`pb-3 px-4 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === 'PENDING'
+                            ? 'text-amber-600 border-b-2 border-amber-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        {t('dashboard.pending_lsgis')}
+                        <span className={`py-0.5 px-2 rounded-full text-xs ${activeTab === 'PENDING' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {lsgis.filter(l => !l.admin_info).length}
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('ASSIGNED')}
+                        className={`pb-3 px-4 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === 'ASSIGNED'
+                            ? 'text-primary-600 border-b-2 border-primary-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                            }`}
+                    >
+                        {t('dashboard.assigned_lsgis')}
+                        <span className={`py-0.5 px-2 rounded-full text-xs ${activeTab === 'ASSIGNED' ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {lsgis.filter(l => l.admin_info).length}
+                        </span>
+                    </button>
+                </div>
+
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 bg-gray-50 p-4 rounded-xl">
                     <div className="flex-1">
-                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">1. Select District</label>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t('dashboard.select_district')}</label>
                         <select
                             className="w-full rounded-lg border-gray-300 focus:ring-primary-500 py-2 text-sm disabled:bg-gray-200 disabled:text-gray-500"
                             value={selectedDistrict || ''}
@@ -225,23 +269,23 @@ export const LSGIManager: React.FC = () => {
                             }}
                             disabled={user?.role === 'LSGD_DISTRICT_ADMIN' || user?.role === 'DISTRICT_MASTER_TRAINER'}
                         >
-                            <option value="">-- Choose District --</option>
+                            <option value="">{t('dashboard.choose_district')}</option>
                             {districts.map(d => (
-                                <option key={d.id} value={d.id}>{d.name}</option>
+                                <option key={d.id} value={d.id}>{getLocalizedName(d, language)}</option>
                             ))}
                         </select>
 
                     </div>
 
                     <div className="flex-1">
-                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">2. Select Type</label>
+                        <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">{t('dashboard.select_type')}</label>
                         <select
                             className="w-full rounded-lg border-gray-300 focus:ring-primary-500 py-2 text-sm"
                             value={selectedType}
                             onChange={(e) => setSelectedType(e.target.value as any)}
                             disabled={!selectedDistrict}
                         >
-                            <option value="">-- Choose Type --</option>
+                            <option value="">{t('dashboard.choose_type')}</option>
                             <option value="GP">Grama Panchayat</option>
                             <option value="MUNICIPALITY">Municipality</option>
                             <option value="CORPORATION">Corporation</option>
@@ -252,11 +296,11 @@ export const LSGIManager: React.FC = () => {
                 </div>
 
                 {/* Search Fallback */}
-                <div className="relative">
+                <div className="relative mt-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Or search by name directly..."
+                        placeholder={t('dashboard.search_placeholder')}
                         className="pl-9 pr-4 py-2 w-full rounded-full border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -265,9 +309,13 @@ export const LSGIManager: React.FC = () => {
             </div>
 
             <div className="overflow-x-auto min-h-[300px]">
-                {(!filteredLSGIs.length && !searchTerm && (!selectedDistrict)) ? (
+                {!filteredLSGIs.length ? (
                     <div className="flex flex-col items-center justify-center h-40 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-                        <p>Please select a **District** to view LSGIs.</p>
+                        {(!searchTerm && !selectedDistrict) ? (
+                            <p>{t('dashboard.select_district_view')}</p>
+                        ) : (
+                            <p>{t('dashboard.no_lsgis_found')}</p>
+                        )}
                     </div>
                 ) : (
                     <table className="w-full text-sm text-left">
@@ -277,7 +325,7 @@ export const LSGIManager: React.FC = () => {
                                 <th className="px-4 py-3">Type</th>
                                 <th className="px-4 py-3">District</th>
                                 <th className="px-4 py-3">Block</th>
-                                <th className="px-4 py-3 rounded-r-lg text-right">Actions</th>
+                                <th className="px-4 py-3 rounded-r-lg text-right">{t('common.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -285,11 +333,16 @@ export const LSGIManager: React.FC = () => {
                                 <tr key={item.id} className="group hover:bg-gray-50/50 transition-colors">
                                     <td className="px-4 py-3">
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-gray-900">{item.name}</span>
-                                            {item.admin_info && (
+                                            <span className="font-medium text-gray-900">{getLocalizedName(item, language)}</span>
+                                            {item.admin_info ? (
                                                 <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                                    Admin: {item.admin_info.username} ({item.admin_info.phone})
+                                                    Admin: {item.admin_info.username}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-amber-500 flex items-center gap-1 mt-1">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                    Pending Admin Allocation
                                                 </span>
                                             )}
                                         </div>
@@ -309,6 +362,7 @@ export const LSGIManager: React.FC = () => {
                                             <button
                                                 onClick={() => handleOpenModal(item)}
                                                 className="p-1.5 text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-full transition-colors"
+                                                title={item.admin_info ? "Edit Details" : "Allocate Admin"}
                                             >
                                                 <Pencil className="h-4 w-4" />
                                             </button>
@@ -322,13 +376,6 @@ export const LSGIManager: React.FC = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {filteredLSGIs.length === 0 && (
-                                <tr>
-                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
-                                        No LSGIs found matching your criteria.
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 )}
@@ -337,7 +384,7 @@ export const LSGIManager: React.FC = () => {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title={editingItem ? 'Edit LSGI' : 'Add New LSGI'}
+                title={editingItem ? t('dashboard.title_edit_lsgi') : t('dashboard.title_add_lsgi')}
             >
                 <form onSubmit={handleSave} className="space-y-4">
                     <div className="space-y-4">
@@ -348,7 +395,7 @@ export const LSGIManager: React.FC = () => {
                                 label="District"
                                 value={formData.district || ''}
                                 onChange={(val) => setFormData({ ...formData, district: Number(val) })}
-                                options={districts.map(d => ({ value: d.id, label: d.name }))}
+                                options={districts.map(d => ({ value: d.id, label: getLocalizedName(d, language) }))}
                                 required
                             />
                         </div>
@@ -360,9 +407,9 @@ export const LSGIManager: React.FC = () => {
                                 value={formData.lsgi_type || 'GP'}
                                 onChange={(val) => setFormData({ ...formData, lsgi_type: val as any })}
                                 options={[
-                                    { value: 'GP', label: 'Grama Panchayat' },
-                                    { value: 'MUNICIPALITY', label: 'Municipality' },
-                                    { value: 'CORPORATION', label: 'Corporation' }
+                                    { value: 'GP', label: t('dashboard.type_gp') },
+                                    { value: 'MUNICIPALITY', label: t('dashboard.type_municipality') },
+                                    { value: 'CORPORATION', label: t('dashboard.type_corporation') }
                                 ]}
                             />
                         </div>
@@ -371,7 +418,7 @@ export const LSGIManager: React.FC = () => {
                         <div>
                             {availableLSGINames.length > 0 ? (
                                 <Select
-                                    label="LSGI Name"
+                                    label={t('dashboard.label_lsgi_name')}
                                     value={availableLSGINames.includes(formData.name!) ? formData.name! : (formData.name ? 'OTHER' : '')}
                                     onChange={(val) => {
                                         setFormData({ ...formData, name: val === 'OTHER' ? '' : String(val) });
@@ -384,11 +431,11 @@ export const LSGIManager: React.FC = () => {
                                 />
                             ) : (
                                 <Input
-                                    label="LSGI Name"
+                                    label={t('dashboard.label_lsgi_name')}
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     required
-                                    placeholder="Enter Name (e.g., Thiruvananthapuram Corporation)"
+                                    placeholder={t('dashboard.placeholder_lsgi_name')}
                                 />
                             )}
 
@@ -398,7 +445,7 @@ export const LSGIManager: React.FC = () => {
                                     className="mt-2"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Type Custom Name..."
+                                    placeholder={t('dashboard.type_custom_name')}
                                     autoFocus
                                 />
                             )}
@@ -407,13 +454,13 @@ export const LSGIManager: React.FC = () => {
                         {/* 4. Block (Conditional) */}
                         <div>
                             <Select
-                                label="Block (Optional)"
+                                label={t('dashboard.label_block_optional')}
                                 value={formData.block || ''}
                                 onChange={(val) => setFormData({ ...formData, block: val ? Number(val) : undefined })}
                                 disabled={!formData.district}
                                 options={[
-                                    { value: '', label: 'None (e.g. for Corporation)' },
-                                    ...availableBlocks.map(b => ({ value: b.id, label: b.name }))
+                                    { value: '', label: t('dashboard.option_none_corporation') },
+                                    ...availableBlocks.map(b => ({ value: b.id, label: getLocalizedName(b, language) }))
                                 ]}
                             />
                         </div>
@@ -421,35 +468,35 @@ export const LSGIManager: React.FC = () => {
                         {/* 5. Admin Credentials */}
                         <div className="pt-4 border-t border-gray-100">
                             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                                {editingItem ? 'LSGI Admin Details (Read Only)' : 'LSGI Admin Credentials'}
+                                {editingItem ? t('dashboard.admin_details_readonly') : t('dashboard.admin_credentials')}
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <Input
-                                    label="Admin Username"
+                                    label={t('dashboard.label_admin_username')}
                                     value={formData.admin_username}
                                     onChange={(e) => setFormData({ ...formData, admin_username: e.target.value })}
-                                    placeholder={editingItem ? "No Admin Assigned" : "e.g. tvm_corp_admin"}
+                                    placeholder={editingItem ? t('dashboard.placeholder_no_admin') : "e.g. tvm_corp_admin"}
                                     disabled={!!editingItem}
                                 />
                                 <Input
-                                    label="Admin Phone"
+                                    label={t('dashboard.label_admin_phone')}
                                     value={formData.admin_phone}
                                     onChange={(e) => setFormData({ ...formData, admin_phone: e.target.value })}
-                                    placeholder={editingItem ? "N/A" : "Mobile Number"}
+                                    placeholder={editingItem ? "N/A" : t('dashboard.placeholder_mobile')}
                                     disabled={!!editingItem}
                                 />
                                 <div className="sm:col-span-2">
                                     <Input
-                                        label="Admin Password"
+                                        label={t('dashboard.label_admin_password')}
                                         type="password"
                                         value={editingItem ? "********" : formData.admin_password}
                                         onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
-                                        placeholder={editingItem ? "********" : "Set a strong password"}
+                                        placeholder={editingItem ? "********" : t('dashboard.placeholder_set_password')}
                                         disabled={!!editingItem}
                                     />
                                     {editingItem && (
                                         <p className="text-xs text-gray-400 mt-1">
-                                            Password is hidden for security. Admin details cannot be edited here.
+                                            {t('dashboard.text_password_hidden')}
                                         </p>
                                     )}
                                 </div>
@@ -460,10 +507,10 @@ export const LSGIManager: React.FC = () => {
 
                     <div className="flex justify-end gap-3 pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button type="submit" isLoading={isSaving}>
-                            {editingItem ? 'Update' : 'Create'}
+                            {editingItem ? t('common.edit') : t('common.create')}
                         </Button>
                     </div>
                 </form>

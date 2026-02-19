@@ -7,10 +7,19 @@ interface ModalProps {
     onClose: () => void;
     title: string;
     children: React.ReactNode;
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
     const overlayRef = useRef<HTMLDivElement>(null);
+
+    const maxWidthClass = {
+        sm: 'max-w-sm',
+        md: 'max-w-lg',
+        lg: 'max-w-2xl',
+        xl: 'max-w-4xl',
+        '2xl': 'max-w-6xl'
+    }[size];
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
@@ -39,7 +48,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
                 aria-hidden="true"
             />
 
-            <div className="relative w-full max-w-lg transform rounded-2xl bg-white p-6 text-left shadow-apple transition-all animate-in fade-in zoom-in-95 duration-200">
+            <div className={`relative w-full ${maxWidthClass} max-h-[90vh] flex flex-col transform rounded-2xl bg-white p-6 text-left shadow-apple transition-all animate-in fade-in zoom-in-95 duration-200`}>
                 <div className="flex items-center justify-between mb-5">
                     <h3 className="text-xl font-bold text-gray-900 leading-none tracking-tight">
                         {title}
@@ -53,7 +62,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
                     </button>
                 </div>
 
-                <div className="mt-2">
+                <div className="mt-2 overflow-y-auto">
                     {children}
                 </div>
             </div>

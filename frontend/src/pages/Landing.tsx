@@ -7,10 +7,12 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../auth/store';
 import { useNavigate } from 'react-router-dom';
 import { getDashboardPath } from '../utils/roleUtils';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Landing: React.FC = () => {
     const { isAuthenticated, user } = useAuthStore();
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
     React.useEffect(() => {
         if (isAuthenticated && user) {
@@ -26,25 +28,25 @@ const Landing: React.FC = () => {
             <main id="main-content">
                 <section className="relative overflow-hidden bg-white py-24 sm:py-32">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-100 via-white to-white opacity-60"></div>
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                         <div className="max-w-4xl mx-auto">
                             <h1 className="text-5xl sm:text-7xl font-bold text-gray-900 tracking-tight leading-tight mb-8">
                                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-700 to-primary-500">
-                                    Empowering Every Citizen
+                                    {t('landing.hero_title_1')}
                                 </span>
-                                with Digital Skills
+                                {t('landing.hero_title_2')}
                             </h1>
                             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
-                                Join Kerala's massive digital literacy movement. Learn Safe Tech, AI, and Entrepreneurship skills to thrive in the modern world.
+                                {t('landing.hero_subtitle')}
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Link to="/login">
                                     <Button size="lg" className="w-full sm:w-auto px-8 py-6 text-lg shadow-apple hover:scale-105 transition-transform">
-                                        Get Started
+                                        {t('landing.get_started')}
                                     </Button>
                                 </Link>
                                 <Button variant="outline" size="lg" className="w-full sm:w-auto gap-2 px-8 py-6 text-lg rounded-full border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all">
-                                    <Video className="h-5 w-5" /> Watch Video
+                                    <Video className="h-5 w-5" /> {t('landing.watch_video')}
                                 </Button>
                             </div>
                         </div>
@@ -78,22 +80,22 @@ const Landing: React.FC = () => {
 
                 {/* Pillars Section */}
                 <section className="py-24 bg-gray-50/50">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">Three Pillars of Excellence</h2>
+                    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
+                        <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">{t('landing.pillars_title')}</h2>
                         <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-                            Our comprehensive curriculum covers essential aspects of modern digital life.
+                            {t('landing.pillars_desc')}
                         </p>
                     </div>
 
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Pillar 1 */}
                         <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300">
                             <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
                                 <Shield className="h-7 w-7" />
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-3">Safe Tech</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('landing.pillar_1_title')}</h3>
                             <p className="text-gray-500 leading-relaxed text-lg">
-                                Identify and report scams, understand cyber hygiene, and protect your digital identity securely.
+                                {t('landing.pillar_1_desc')}
                             </p>
                         </div>
 
@@ -102,9 +104,9 @@ const Landing: React.FC = () => {
                             <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-500/20">
                                 <Brain className="h-7 w-7" />
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-3">AI Education</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('landing.pillar_2_title')}</h3>
                             <p className="text-gray-500 leading-relaxed text-lg">
-                                Understand the basics of Artificial Intelligence and how you can use simple AI tools in daily life.
+                                {t('landing.pillar_2_desc')}
                             </p>
                         </div>
 
@@ -113,9 +115,9 @@ const Landing: React.FC = () => {
                             <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
                                 <Lightbulb className="h-7 w-7" />
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-3">DEED</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('landing.pillar_3_title')}</h3>
                             <p className="text-gray-500 leading-relaxed text-lg">
-                                Digitalisation of Every Essential Document. Learn to use digital tools for livelihood.
+                                {t('landing.pillar_3_desc')}
                             </p>
                         </div>
                     </div>

@@ -22,17 +22,25 @@ class SessionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         
+        # Optimize query by selecting related fields
+        queryset = TrainingSession.objects.select_related(
+            'ward', 
+            'ward__lsgi', 
+            'ward__lsgi__district',
+            'created_by'
+        )
+        
         # 1. District Master Trainer: All sessions in their District
         if user.role == 'DISTRICT_MASTER_TRAINER':
             district = user.profile.district
-            return TrainingSession.objects.filter(
+            return queryset.filter(
                 Q(ward__lsgi__district=district) | Q(created_by=user)
             ).distinct()
         
         # 2. LSGI Field Trainer: Only sessions explicitly assigned to them
         if user.role == 'LSGI_FIELD_TRAINER':
             # Show only sessions where this trainer is explicitly assigned
-            return TrainingSession.objects.filter(
+            return queryset.filter(
                 assignments__trainer=user
             ).distinct()
             
@@ -41,17 +49,16 @@ class SessionViewSet(viewsets.ModelViewSet):
              wards = user.profile.wards.all()
              # Also filter by Proficiency? SRS says "matching location and proficiency"
              # Assuming citizen has no proficiency field yet, filtering by Ward for now.
-             return TrainingSession.objects.filter(ward__in=wards, status='SCHEDULED')
+             return queryset.filter(ward__in=wards, status='SCHEDULED')
 
-        # 4. Admins: Bound to their geography
         # 4. Admins: Bound to their geography
         if user.role == 'LSGD_DISTRICT_ADMIN':
-            return TrainingSession.objects.filter(ward__lsgi__district=user.profile.district)
+            return queryset.filter(ward__lsgi__district=user.profile.district)
             
         if user.role == 'LSGI_ADMIN':
-            return TrainingSession.objects.filter(ward__lsgi=user.profile.lsgi)
+            return queryset.filter(ward__lsgi=user.profile.lsgi)
 
-        return TrainingSession.objects.none()
+        return queryset.none()
 
     def perform_create(self, serializer):
         # Additional enforcement: District Master Trainer OR District Admin OR LSGI Admin can create
@@ -312,13 +319,25 @@ class AnalyticsViewSet(viewsets.ViewSet):
         if user.role in ['LSGD_STATE_ADMIN', 'KSITM_SUPER_ADMIN']:
             pass 
         elif user.role in ['LSGD_DISTRICT_ADMIN', 'DISTRICT_MASTER_TRAINER']:
-            if hasattr(user, 'profile') and user.profile.district:
+            district = None
+            if hasattr(user, 'profile'):
+                if user.profile.district:
+                    district = user.profile.district
+                elif user.profile.lsgi:
+                    district = user.profile.lsgi.district
+            
+            if district:
                 sessions = sessions.filter(
-                    Q(ward__lsgi__district=user.profile.district) | 
+                    Q(ward__lsgi__district=district) | 
                     Q(created_by=user)
                 ).distinct()
             else:
-                return Response({"error": "District not assigned"}, status=400)
+                # If no district assigned, but they created sessions, show those?
+                # Or just error. Stick to error for now if absolutely no context.
+                if sessions.filter(created_by=user).exists():
+                     sessions = sessions.filter(created_by=user)
+                else: 
+                     return Response({"error": "District not assigned"}, status=400)
         elif user.role == 'LSGI_ADMIN':
             if hasattr(user, 'profile') and user.profile.lsgi:
                 sessions = sessions.filter(ward__lsgi=user.profile.lsgi)

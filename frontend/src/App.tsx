@@ -86,11 +86,15 @@ function AppContent() {
   );
 }
 
+import { LanguageProvider } from './contexts/LanguageContext';
+
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <LanguageProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </LanguageProvider>
   );
 }
 

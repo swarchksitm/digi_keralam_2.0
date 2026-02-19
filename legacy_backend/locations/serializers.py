@@ -84,6 +84,8 @@ class LSGISerializer(serializers.ModelSerializer):
             return lsgi
 
 class WardSerializer(serializers.ModelSerializer):
+    ward_number = serializers.IntegerField(source='number', read_only=True)
+
     class Meta:
         model = Ward
         fields = '__all__'

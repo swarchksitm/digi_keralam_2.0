@@ -12,7 +12,8 @@ class UserProfile(models.Model):
     district = models.ForeignKey(District, on_delete=models.SET_NULL, null=True, blank=True)
     block = models.ForeignKey(Block, on_delete=models.SET_NULL, null=True, blank=True)
     lsgi = models.ForeignKey(LSGI, on_delete=models.SET_NULL, null=True, blank=True)
-    wards = models.ManyToManyField(Ward, blank=True, related_name='residents_profiles')
+    ward = models.ForeignKey(Ward, on_delete=models.SET_NULL, null=True, blank=True, related_name='residents', help_text="Residential Ward for Citizens")
+    wards = models.ManyToManyField(Ward, blank=True, related_name='assigned_trainers', help_text="Assigned Wards for Field Trainers")
 
     age = models.IntegerField(null=True, blank=True)
     highest_qualification = models.CharField(max_length=255, null=True, blank=True)

@@ -6,14 +6,20 @@ import { MasterTrainerManager } from '../../components/dashboard/MasterTrainerMa
 import { LocalTrainerList } from '../../components/dashboard/LocalTrainerList';
 import { SessionManager } from '../../components/dashboard/SessionManager';
 import { Navbar } from '../../components/layout/Navbar';
+import { useAuthStore } from '../../auth/store';
 
+
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const LSGIDashboard: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'MASTER_TRAINERS' | 'LOCAL_TRAINERS' | 'SESSIONS'>('OVERVIEW');
+    const { t } = useLanguage();
+    const { refreshProfile } = useAuthStore();
 
     useEffect(() => {
+        refreshProfile(); // Sync user data on mount to ensure LSGI assignment is fresh
         loadStats();
     }, []);
 
@@ -53,32 +59,32 @@ const LSGIDashboard: React.FC = () => {
                         {!isLoading && stats && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                                 <StatsCard
-                                    title="Upcoming Sessions"
+                                    title={t('dashboard.upcoming_sessions')}
                                     value={stats.upcoming_sessions}
                                     icon={BarChart3}
                                     color="blue"
-                                    description="Planned Training Events"
+                                    description={t('dashboard.desc_upcoming_sessions')}
                                 />
                                 <StatsCard
-                                    title="Total Attendance"
+                                    title={t('dashboard.total_attendance')}
                                     value={stats.total_attendees}
                                     icon={Users}
                                     color="orange"
-                                    description="Citizens Attended"
+                                    description={t('dashboard.desc_citizens_attended')}
                                 />
                                 <StatsCard
-                                    title="Total Sessions"
+                                    title={t('dashboard.total_sessions')}
                                     value={stats.total_sessions}
                                     icon={CheckCircle}
                                     color="purple"
-                                    description="All scheduled and completed"
+                                    description={t('dashboard.desc_scheduled_completed')}
                                 />
                                 <StatsCard
-                                    title="Wards Covered"
+                                    title={t('dashboard.wards_covered')}
                                     value={stats.wards_covered}
                                     icon={Map}
                                     color="green"
-                                    description="Unique wards reached"
+                                    description={t('dashboard.desc_wards_reached')}
                                 />
                             </div>
                         )}
@@ -89,22 +95,22 @@ const LSGIDashboard: React.FC = () => {
                                 <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4">
                                     <UserCog className="h-6 w-6" />
                                 </div>
-                                <h3 className="font-semibold text-gray-900 mb-1">Manage Master Trainers</h3>
-                                <p className="text-sm text-gray-500">Create and manage District Master Trainers.</p>
+                                <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.manage_master_trainers')}</h3>
+                                <p className="text-sm text-gray-500">{t('dashboard.desc_manage_master_trainers')}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('LOCAL_TRAINERS')}>
                                 <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4">
                                     <Users className="h-6 w-6" />
                                 </div>
-                                <h3 className="font-semibold text-gray-900 mb-1">View Local Trainers</h3>
-                                <p className="text-sm text-gray-500">View Field Trainers created by Master Trainers.</p>
+                                <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.view_local_trainers')}</h3>
+                                <p className="text-sm text-gray-500">{t('dashboard.desc_view_local_trainers')}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('SESSIONS')}>
                                 <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
                                     <CheckCircle className="h-6 w-6" />
                                 </div>
-                                <h3 className="font-semibold text-gray-900 mb-1">Training Sessions</h3>
-                                <p className="text-sm text-gray-500">Manage sessions and attendance.</p>
+                                <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.title_training_sessions')}</h3>
+                                <p className="text-sm text-gray-500">{t('dashboard.desc_manage_sessions_attendance')}</p>
                             </div>
                         </div>
                     </div>
@@ -117,17 +123,17 @@ const LSGIDashboard: React.FC = () => {
             <Navbar />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-900">LSGI Dashboard</h1>
-                    <p className="text-gray-500 mt-1">Manage trainers and sessions for your Local Self Government Institution.</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.lsgi_dashboard')}</h1>
+                    <p className="text-gray-500 mt-1">{t('dashboard.desc_lsgi_dashboard')}</p>
                 </div>
 
                 {/* Tabs Navigation */}
                 <div className="flex space-x-1 bg-white p-1 rounded-xl shadow-sm border border-gray-200 mb-8 w-fit overflow-x-auto">
                     {[
-                        { id: 'OVERVIEW', label: 'Overview' },
-                        { id: 'MASTER_TRAINERS', label: 'Master Trainers' },
-                        { id: 'LOCAL_TRAINERS', label: 'Local Trainers' },
-                        { id: 'SESSIONS', label: 'Sessions & Attendance' }
+                        { id: 'OVERVIEW', label: t('dashboard.overview') },
+                        { id: 'MASTER_TRAINERS', label: t('dashboard.master_trainers') },
+                        { id: 'LOCAL_TRAINERS', label: t('dashboard.view_local_trainers') },
+                        { id: 'SESSIONS', label: t('dashboard.training_sessions') }
                     ].map((tab) => (
                         <button
                             key={tab.id}

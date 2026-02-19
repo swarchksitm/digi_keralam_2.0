@@ -42,6 +42,13 @@ const SessionCreate: React.FC = () => {
     // Fetch Blocks on Mount (filtered by User's District)
     useEffect(() => {
         const fetchBlocks = async () => {
+            // If user is restricted to an LSGI, skip block fetching and set LSGI directly
+            if (user?.profile?.lsgi) {
+                const lsgiId = typeof user.profile.lsgi === 'object' ? user.profile.lsgi.id : user.profile.lsgi;
+                setSelectedLSGI(String(lsgiId));
+                return;
+            }
+
             // Safety check for role and district
             if (!user?.profile?.district) {
                 setError("User district not found. Cannot load locations.");
@@ -114,7 +121,11 @@ const SessionCreate: React.FC = () => {
             }, 1500);
         } catch (err: any) {
             console.error("Create session failed", err);
-            setError(JSON.stringify(err.response?.data) || "Failed to create session.");
+            const msg = err.response?.data?.detail
+                || (err.response?.data && typeof err.response.data === 'object' ? Object.values(err.response.data).join(', ') : null)
+                || JSON.stringify(err.response?.data)
+                || "Failed to create session.";
+            setError(msg);
         } finally {
             setIsLoading(false);
         }

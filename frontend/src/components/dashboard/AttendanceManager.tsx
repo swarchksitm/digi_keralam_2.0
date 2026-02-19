@@ -21,13 +21,17 @@ interface Attendee {
     marked_at: string;
 }
 
-export const AttendanceManager: React.FC = () => {
+interface AttendanceManagerProps {
+    initialSessionId?: string;
+}
+
+export const AttendanceManager: React.FC<AttendanceManagerProps> = ({ initialSessionId }) => {
     const [sessions, setSessions] = useState<TrainingSession[]>([]);
     const [attendees, setAttendees] = useState<Attendee[]>([]);
 
     // Filters
-    const [selectedSessionId, setSelectedSessionId] = useState<string>('');
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [selectedSessionId, setSelectedSessionId] = useState<string>(initialSessionId || '');
+    const [selectedDate, setSelectedDate] = useState<string>(initialSessionId ? '' : new Date().toISOString().split('T')[0]);
     const [searchQuery, setSearchQuery] = useState('');
 
     const [isLoading, setIsLoading] = useState(false);
@@ -39,8 +43,12 @@ export const AttendanceManager: React.FC = () => {
     const [uploadSessionId, setUploadSessionId] = useState<string>('');
 
     useEffect(() => {
+        if (initialSessionId) {
+            setSelectedSessionId(initialSessionId);
+            setSelectedDate('');
+        }
         fetchSessions();
-    }, []);
+    }, [initialSessionId]);
 
     useEffect(() => {
         fetchAttendees();
@@ -130,35 +138,39 @@ export const AttendanceManager: React.FC = () => {
                 <CardContent>
                     {/* Filters */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div>
-                            <label className="text-xs font-medium text-gray-500 mb-1 block">Filter by Session</label>
-                            <select
-                                className="w-full rounded-lg border-gray-200 text-sm py-2 px-3"
-                                value={selectedSessionId}
-                                onChange={e => {
-                                    setSelectedSessionId(e.target.value);
-                                    if (e.target.value) setSelectedDate(''); // Clear date if session selected to avoid confusion?
-                                }}
-                            >
-                                <option value="">All Sessions</option>
-                                {sessions.map(s => (
-                                    <option key={s.id} value={s.id}>{s.title} ({new Date(s.date_time).toLocaleDateString()})</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-xs font-medium text-gray-500 mb-1 block">Filter by Date</label>
-                            <input
-                                type="date"
-                                className="w-full rounded-lg border-gray-200 text-sm py-2 px-3 disabled:bg-gray-100 disabled:text-gray-400"
-                                value={selectedDate}
-                                onChange={e => {
-                                    setSelectedDate(e.target.value);
-                                    if (e.target.value) setSelectedSessionId(''); // Clear session if date forcefully changed?
-                                }}
-                                disabled={!!selectedSessionId} // Optionally disable date if session is specific
-                            />
-                        </div>
+                        {!initialSessionId && (
+                            <div>
+                                <label className="text-xs font-medium text-gray-500 mb-1 block">Filter by Session</label>
+                                <select
+                                    className="w-full rounded-lg border-gray-200 text-sm py-2 px-3"
+                                    value={selectedSessionId}
+                                    onChange={e => {
+                                        setSelectedSessionId(e.target.value);
+                                        if (e.target.value) setSelectedDate('');
+                                    }}
+                                >
+                                    <option value="">All Sessions</option>
+                                    {sessions.map(s => (
+                                        <option key={s.id} value={s.id}>{s.title} ({new Date(s.date_time).toLocaleDateString()})</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                        {!initialSessionId && (
+                            <div>
+                                <label className="text-xs font-medium text-gray-500 mb-1 block">Filter by Date</label>
+                                <input
+                                    type="date"
+                                    className="w-full rounded-lg border-gray-200 text-sm py-2 px-3 disabled:bg-gray-100 disabled:text-gray-400"
+                                    value={selectedDate}
+                                    onChange={e => {
+                                        setSelectedDate(e.target.value);
+                                        if (e.target.value) setSelectedSessionId('');
+                                    }}
+                                    disabled={!!selectedSessionId}
+                                />
+                            </div>
+                        )}
                         <div>
                             <label className="text-xs font-medium text-gray-500 mb-1 block">Search Attendees</label>
                             <div className="relative">
@@ -175,7 +187,7 @@ export const AttendanceManager: React.FC = () => {
                     </div>
 
                     {/* Attendees List */}
-                    <div className="border rounded-lg overflow-hidden">
+                    <div className="border rounded-lg overflow-hidden overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-gray-50 text-gray-500 font-medium">
                                 <tr>

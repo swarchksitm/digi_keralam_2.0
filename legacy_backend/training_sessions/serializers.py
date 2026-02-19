@@ -68,12 +68,15 @@ class TrainingSessionSerializer(serializers.ModelSerializer):
             if trainer_id:
                 # Create assignment
                 from django.contrib.auth import get_user_model
+                from django.core.exceptions import ValidationError as DjangoValidationError
                 User = get_user_model()
                 try:
                     trainer = User.objects.get(id=trainer_id, role='LSGI_FIELD_TRAINER')
                     SessionAssignment.objects.create(session=session, trainer=trainer)
                 except User.DoesNotExist:
                      raise serializers.ValidationError({"trainer_id": "Invalid Field Trainer ID."})
+                except DjangoValidationError as e:
+                     raise serializers.ValidationError({"detail": str(e)})
             
             return session
 

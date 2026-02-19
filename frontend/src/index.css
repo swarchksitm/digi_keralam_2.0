@@ -2,8 +2,21 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
+@font-face {
+  font-family: 'ML TTLeela';
+  src: url('/fonts/ML TTLeela.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-malayalam {
+  font-family: 'ML TTLeela', sans-serif !important;
+}
+
 @theme {
   --font-sans: 'Outfit', sans-serif;
+  --font-malayalam: 'ML TTLeela', sans-serif;
 
   /* LSGD Blue (Primary Brand) - Based on #2A3B90 */
   --color-primary-50: #eff4ff;

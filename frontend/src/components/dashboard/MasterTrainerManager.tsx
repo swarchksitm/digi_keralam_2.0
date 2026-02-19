@@ -14,6 +14,7 @@ export const MasterTrainerManager: React.FC = () => {
     const [trainers, setTrainers] = useState<AdminUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -21,7 +22,10 @@ export const MasterTrainerManager: React.FC = () => {
     const [lsgis, setLsgis] = useState<LSGI[]>([]);
     const [selectedLsgi, setSelectedLsgi] = useState<string>('');
 
-    // Form State
+    // Wards State
+    const [wards, setWards] = useState<any[]>([]);
+    const [selectedWards, setSelectedWards] = useState<number[]>([]);
+
     const [formData, setFormData] = useState({
         username: '',
         password: '',
@@ -33,26 +37,99 @@ export const MasterTrainerManager: React.FC = () => {
 
     useEffect(() => {
         loadData();
-    }, []);
-
-    useEffect(() => {
-        // Load LSGIs if District Admin
-        if (user?.role === 'LSGD_DISTRICT_ADMIN' && isModalOpen) {
-            LocationService.getLSGIs().then(setLsgis).catch(console.error);
-        }
-    }, [user?.role, isModalOpen]);
+    }, [user]);
 
     const loadData = async () => {
         setIsLoading(true);
         try {
-            // Load LSGI Master Trainers
-            const trainerData = await UserService.getAdminUsers('DISTRICT_MASTER_TRAINER');
-            setTrainers(trainerData);
+            console.log("Loading data for user:", user);
+            const districtId = user?.profile?.district
+                ? (typeof user.profile.district === 'object' ? user.profile.district.id : user.profile.district)
+                : undefined;
+
+            const [usersReq, lsgisReq] = await Promise.all([
+                UserService.getAdminUsers('DISTRICT_MASTER_TRAINER'),
+                user?.role === 'LSGD_DISTRICT_ADMIN' && districtId
+                    ? LocationService.getLSGIs({ district: districtId })
+                    : Promise.resolve([])
+            ]);
+            setTrainers(usersReq);
+            if (lsgisReq) setLsgis(lsgisReq);
+
+            // Auto-select LSGI for LSGI Admins
+            if (user?.profile?.lsgi) {
+                console.log("User has LSGI profile:", user.profile.lsgi);
+                const lsgiId = typeof user.profile.lsgi === 'object' ? user.profile.lsgi.id : user.profile.lsgi;
+                console.log("Setting selected LSGI to:", lsgiId);
+                setSelectedLsgi(lsgiId.toString());
+            } else {
+                console.log("User does not have LSGI profile or is not LSGI Admin");
+            }
         } catch (error) {
             console.error("Failed to load master trainers", error);
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // Separate effect to ensure LSGI is selected even if user loads after initial mount
+    useEffect(() => {
+        if (user?.role === 'LSGI_ADMIN' && user?.profile?.lsgi) {
+            const lsgiId = typeof user.profile.lsgi === 'object' ? user.profile.lsgi.id : user.profile.lsgi;
+            console.log("Auto-selecting LSGI for LSGI Admin:", lsgiId);
+            setSelectedLsgi(lsgiId.toString());
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (selectedLsgi) {
+            LocationService.getWards(Number(selectedLsgi))
+                .then(setWards)
+                .catch(console.error);
+        } else {
+            setWards([]);
+            setSelectedWards([]);
+        }
+    }, [selectedLsgi]);
+
+    const toggleWard = (wardId: number) => {
+        setSelectedWards(prev =>
+            prev.includes(wardId)
+                ? prev.filter(id => id !== wardId)
+                : [...prev, wardId]
+        );
+    };
+
+    const handleSelectAllWards = () => {
+        if (selectedWards.length === wards.length) {
+            setSelectedWards([]);
+        } else {
+            setSelectedWards(wards.map(w => w.id));
+        }
+    };
+
+    const handleEdit = (trainer: AdminUser) => {
+        setEditingId(trainer.id);
+        setFormData({
+            username: trainer.username,
+            password: '', // Leave empty to keep unchanged
+            first_name: trainer.first_name,
+            last_name: trainer.last_name,
+            email: trainer.email,
+            phone: trainer.phone
+        });
+
+        if (trainer.profile?.lsgi) {
+            setSelectedLsgi(trainer.profile.lsgi.id.toString());
+        }
+
+        if (trainer.profile?.wards) {
+            setSelectedWards(trainer.profile.wards.map(w => w.id));
+        } else {
+            setSelectedWards([]);
+        }
+
+        setIsModalOpen(true);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,15 +142,29 @@ export const MasterTrainerManager: React.FC = () => {
 
         setIsSaving(true);
         try {
-            // Create user with role DISTRICT_MASTER_TRAINER (LSGI Master Trainer)
-            await api.post('/auth/admin-users/', {
+            const payload: any = {
                 ...formData,
                 role: 'DISTRICT_MASTER_TRAINER',
-                lsgi_id: selectedLsgi || undefined // Optional if LSGI Admin (auto-assigned backend)
-            });
+                lsgi_id: selectedLsgi || undefined,
+                ward_ids: selectedWards
+            };
+
+            // Remove password if empty during edit
+            if (editingId && !payload.password) {
+                delete payload.password;
+            }
+
+            if (editingId) {
+                await api.patch(`/auth/admin-users/${editingId}/`, payload);
+                alert("Master Trainer updated successfully!");
+            } else {
+                await api.post('/auth/admin-users/', payload);
+                alert("Master Trainer created successfully!");
+            }
 
             await loadData();
             setIsModalOpen(false);
+            setEditingId(null);
             setFormData({
                 username: '',
                 password: '',
@@ -82,11 +173,25 @@ export const MasterTrainerManager: React.FC = () => {
                 email: '',
                 phone: ''
             });
-            setSelectedLsgi('');
-            alert("Master Trainer created successfully!");
+            // Don't clear LSGI if District Admin? Maybe clear for fresh start.
+            // Actually for LSGI Admin user, we shouldn't clear it.
+            if (user?.role === 'LSGD_DISTRICT_ADMIN') {
+                setSelectedLsgi('');
+            }
+            // For LSGI Admin (who is restricted), selectedLsgi is auto-set in loadData/effect, 
+            // but we should arguably not clear it here if it's fixed.
+            // However, loadData checks user profile and sets it.
+            // But if we clear it here, the user has to wait for reload? 
+            // Better to just clear selectedWards.
+
+            if (user?.role === 'LSGD_DISTRICT_ADMIN') {
+                setSelectedLsgi('');
+            }
+            setSelectedWards([]);
+
         } catch (error: any) {
-            console.error("Failed to create trainer", error);
-            alert("Failed to create trainer: " + (error.response?.data?.detail || JSON.stringify(error.response?.data)));
+            console.error("Failed to save trainer", error);
+            alert("Failed to save trainer: " + (error.response?.data?.detail || JSON.stringify(error.response?.data)));
         } finally {
             setIsSaving(false);
         }
@@ -121,7 +226,16 @@ export const MasterTrainerManager: React.FC = () => {
                         <p className="text-sm text-gray-500">Create and manage LSGI Master Trainers.</p>
                     </div>
                     {user?.role !== 'LSGD_DISTRICT_ADMIN' && (
-                        <Button onClick={() => setIsModalOpen(true)} className="gap-2 rounded-full">
+                        <Button onClick={() => {
+                            setEditingId(null);
+                            setFormData({
+                                username: '', password: '', first_name: '', last_name: '', email: '', phone: ''
+                            });
+                            // If LSGI Admin, keep selectedLsgi. If District Admin, clear it.
+                            if (user?.role === 'LSGD_DISTRICT_ADMIN') setSelectedLsgi('');
+                            setSelectedWards([]);
+                            setIsModalOpen(true);
+                        }} className="gap-2 rounded-full">
                             <Plus className="h-4 w-4" /> Add Master Trainer
                         </Button>
                     )}
@@ -168,8 +282,6 @@ export const MasterTrainerManager: React.FC = () => {
                                 </td>
                                 <td className="px-4 py-3">
                                     <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
-                                        {/* Since backend returns user objects, we need to ensure profile is populated or handled */}
-                                        {/* For now simplified as "LSGI Scope" or if possible fetch name */}
                                         LSGI Level
                                     </span>
                                 </td>
@@ -179,9 +291,18 @@ export const MasterTrainerManager: React.FC = () => {
                                 </td>
                                 {user?.role !== 'LSGD_DISTRICT_ADMIN' && (
                                     <td className="px-4 py-3 text-right">
-                                        <button onClick={() => handleDelete(trainer.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
-                                            <Trash2 className="h-4 w-4" />
-                                        </button>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => handleEdit(trainer)}
+                                                className="text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-colors"
+                                                title="Edit Trainer"
+                                            >
+                                                <UserCog className="h-4 w-4" />
+                                            </button>
+                                            <button onClick={() => handleDelete(trainer.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 )}
                             </tr>
@@ -190,7 +311,7 @@ export const MasterTrainerManager: React.FC = () => {
                 </table>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New LSGI Master Trainer">
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Master Trainer" : "Add New LSGI Master Trainer"}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* District Admin MUST select LSGI */}
                     {user?.role === 'LSGD_DISTRICT_ADMIN' && (
@@ -211,6 +332,44 @@ export const MasterTrainerManager: React.FC = () => {
                         </div>
                     )}
 
+                    {/* Ward Selection (Only if LSGI selected) */}
+                    {selectedLsgi && (
+                        <div>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-sm font-medium text-gray-700">Assign Wards (Optional)</label>
+                                <button
+                                    type="button"
+                                    onClick={handleSelectAllWards}
+                                    className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                                >
+                                    {selectedWards.length === wards.length ? 'Deselect All' : 'Select All'}
+                                </button>
+                            </div>
+                            <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto bg-gray-50">
+                                {wards.length > 0 ? (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {wards.map(ward => (
+                                            <label key={ward.id} className="flex items-center gap-2 p-1 hover:bg-white rounded cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedWards.includes(ward.id)}
+                                                    onChange={() => toggleWard(ward.id)}
+                                                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                                />
+                                                <span className="text-xs text-gray-700 truncate" title={ward.name}>
+                                                    {ward.ward_number}. {ward.name}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-400 text-center py-2">No wards found for this LSGI (ID: {selectedLsgi}).</p>
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Selected: {selectedWards.length} wards</p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         <Input label="Username" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} required />
                         <Input label="Phone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
@@ -222,11 +381,18 @@ export const MasterTrainerManager: React.FC = () => {
 
                     <Input label="Email" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
 
-                    <Input label="Password" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="Set strong password" />
+                    <Input
+                        label={editingId ? "Password (Leave blank to keep current)" : "Password"}
+                        type="password"
+                        value={formData.password}
+                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                        required={!editingId}
+                        placeholder="Set strong password"
+                    />
 
                     <div className="flex justify-end gap-3 pt-4">
                         <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" isLoading={isSaving}>Create Master Trainer</Button>
+                        <Button type="submit" isLoading={isSaving}>{editingId ? "Update Master Trainer" : "Create Master Trainer"}</Button>
                     </div>
                 </form>
             </Modal>

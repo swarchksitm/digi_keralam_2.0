@@ -7,6 +7,8 @@ import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Modal } from '../ui/Modal';
 import { Plus, Trash2, UserCog } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getLocalizedName } from '../../utils/languageUtils';
 
 interface UserManagementProps {
     roleType: 'LSGD_STATE_ADMIN' | 'LSGD_DISTRICT_ADMIN';
@@ -20,6 +22,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const { t, language } = useLanguage();
 
     const [formData, setFormData] = useState({
         username: '',
@@ -68,19 +71,19 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                 district_id: undefined
             });
         } catch (error: any) {
-            alert("Failed to create user: " + (error.response?.data?.detail || JSON.stringify(error.response?.data)));
+            alert(`${t('dashboard.error_create_user')}: ` + (error.response?.data?.detail || JSON.stringify(error.response?.data)));
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure?")) return;
+        if (!confirm(t('common.confirm_delete'))) return;
         try {
             await UserService.deleteAdminUser(id);
             setUsers(prev => prev.filter(u => u.id !== id));
         } catch (error) {
-            alert("Failed to delete user");
+            alert(t('dashboard.error_delete_user'));
         }
     };
 
@@ -89,16 +92,16 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-                    <p className="text-sm text-gray-500">Manage access for {roleType === 'LSGD_STATE_ADMIN' ? 'State' : 'District'} Level</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.manage_access')} {roleType === 'LSGD_STATE_ADMIN' ? t('dashboard.state') : t('dashboard.district')} {t('dashboard.level')}</p>
                 </div>
                 {!readOnly && (
                     roleType === 'LSGD_STATE_ADMIN' && users.length > 0 ? (
                         <div className="text-xs font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-                            Single Account Limit Reached
+                            {t('dashboard.single_account_limit')}
                         </div>
                     ) : (
                         <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-                            <Plus className="h-4 w-4" /> Add New
+                            <Plus className="h-4 w-4" /> {t('dashboard.add_new')}
                         </Button>
                     )
                 )}
@@ -108,11 +111,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
                         <tr>
-                            <th className="px-4 py-3 rounded-l-lg">User</th>
-                            <th className="px-4 py-3">Role</th>
-                            <th className="px-4 py-3">Contact</th>
-                            {roleType === 'LSGD_DISTRICT_ADMIN' && <th className="px-4 py-3">Assigned District</th>}
-                            {!readOnly && <th className="px-4 py-3 rounded-r-lg text-right">Actions</th>}
+                            <th className="px-4 py-3 rounded-l-lg">{t('dashboard.username')}</th>
+                            <th className="px-4 py-3">{t('dashboard.role')}</th>
+                            <th className="px-4 py-3">{t('dashboard.contact')}</th>
+                            {roleType === 'LSGD_DISTRICT_ADMIN' && <th className="px-4 py-3">{t('dashboard.assigned_district')}</th>}
+                            {!readOnly && <th className="px-4 py-3 rounded-r-lg text-right">{t('dashboard.actions')}</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -140,7 +143,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                                 </td>
                                 {roleType === 'LSGD_DISTRICT_ADMIN' && (
                                     <td className="px-4 py-3 text-gray-600">
-                                        {user.profile?.district?.name || '-'}
+                                        {user.profile?.district ? getLocalizedName(user.profile.district, language) : '-'}
                                     </td>
                                 )}
                                 {!readOnly && (
@@ -154,42 +157,42 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={5} className="text-center py-8 text-gray-500">No users found.</td>
+                                <td colSpan={5} className="text-center py-8 text-gray-500">{t('dashboard.no_data')}</td>
                             </tr>
                         )}
                     </tbody>
                 </table>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`Create ${title}`}>
+            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={`${t('dashboard.create_user')}`}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Username" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} required />
-                        <Input label="Phone" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
+                        <Input label={t('dashboard.username')} value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} required />
+                        <Input label={t('dashboard.phone')} value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="First Name" value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })} required />
-                        <Input label="Last Name" value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })} required />
+                        <Input label={t('dashboard.first_name')} value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })} required />
+                        <Input label={t('dashboard.last_name')} value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })} required />
                     </div>
-                    <Input label="Email" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
+                    <Input label={t('dashboard.email')} type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} required />
 
                     {roleType === 'LSGD_DISTRICT_ADMIN' && (
                         <div>
                             <Select
-                                label="Assign District"
+                                label={t('dashboard.assign_district')}
                                 value={formData.district_id || ''}
                                 onChange={val => setFormData({ ...formData, district_id: Number(val) })}
-                                options={districts.map(d => ({ value: d.id, label: d.name }))}
+                                options={districts.map(d => ({ value: d.id, label: getLocalizedName(d, language) }))}
                                 required
                             />
                         </div>
                     )}
 
-                    <Input label="Password" type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder="Set strong password" />
+                    <Input label={t('dashboard.password')} type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} required placeholder={t('dashboard.placeholder_password')} />
 
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" isLoading={isSaving}>Create User</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>{t('common.cancel')}</Button>
+                        <Button type="submit" isLoading={isSaving}>{t('dashboard.create_user')}</Button>
                     </div>
                 </form>
             </Modal>

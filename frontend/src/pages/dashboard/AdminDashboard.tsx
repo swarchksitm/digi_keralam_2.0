@@ -7,6 +7,7 @@ import { SuperAdminDashboard } from './SuperAdminDashboard';
 import { StateAdminDashboard } from './StateAdminDashboard';
 
 import { MasterTrainerDashboard } from './MasterTrainerDashboard';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface AnalyticsSummary {
     total_sessions: number;
@@ -20,6 +21,7 @@ const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<AnalyticsSummary | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -42,11 +44,11 @@ const AdminDashboard: React.FC = () => {
     }, []);
 
     const getDashboardTitle = () => {
-        if (user?.role === 'LSGD_STATE_ADMIN') return 'State Overview';
-        if (user?.role === 'LSGD_DISTRICT_ADMIN') return 'District Overview';
-        if (user?.role === 'DISTRICT_MASTER_TRAINER') return 'Master Trainer Overview';
+        if (user?.role === 'LSGD_STATE_ADMIN') return t('dashboard.overview'); // 'State Overview'
+        if (user?.role === 'LSGD_DISTRICT_ADMIN') return t('dashboard.overview'); // 'District Overview'
+        if (user?.role === 'DISTRICT_MASTER_TRAINER') return t('dashboard.overview');
         if (user?.role === 'KSITM_SUPER_ADMIN') return 'KSITM Console';
-        return 'Dashboard';
+        return t('dashboard.overview');
     };
 
     return (
@@ -55,7 +57,7 @@ const AdminDashboard: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900">{getDashboardTitle()}</h1>
-                    <p className="text-gray-600">Real-time training program insights.</p>
+                    <p className="text-gray-600">{t('dashboard.realtime_insights')}</p>
                 </div>
 
                 {error && (

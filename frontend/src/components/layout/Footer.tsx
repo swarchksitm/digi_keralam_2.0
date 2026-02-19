@@ -5,8 +5,8 @@ import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'luci
 export const Footer: React.FC = () => {
     return (
         <footer className="bg-gray-900 text-gray-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {/* Column 1: Logos & About */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-4 bg-white p-3 rounded-lg w-fit">

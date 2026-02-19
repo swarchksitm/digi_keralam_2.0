@@ -4,6 +4,7 @@ import api from '../../api/client';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { SearchableSelect } from '../../components/ui/SearchableSelect';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { AlertCircle, UserCog } from 'lucide-react';
 import { Navbar } from '../../components/layout/Navbar';
@@ -22,8 +23,10 @@ const TrainerRegister: React.FC = () => {
         age: '' as string | number,
         highest_qualification: '',
         district_id: '' as string | number,
+        lsgi_type: '',
+
         lsgi_id: '' as string | number,
-        ward_ids: [] as number[]
+        ward_id: '' as string | number
     });
 
     // Location Data
@@ -39,27 +42,32 @@ const TrainerRegister: React.FC = () => {
         LocationService.getDistricts().then(setDistricts).catch(console.error);
     }, []);
 
-    const handleDistrictChange = async (val: string | number) => {
-        const districtId = Number(val);
-        setFormData({ ...formData, district_id: districtId, lsgi_id: '', ward_ids: [] });
+    // Fetch LSGIs when District or Type changes
+    useEffect(() => {
+        if (formData.district_id && formData.lsgi_type) {
+            LocationService.getLSGIs({
+                district: Number(formData.district_id),
+                lsgi_type: formData.lsgi_type
+            }).then(setLsgis).catch(console.error);
+        } else {
+            setLsgis([]);
+        }
+    }, [formData.district_id, formData.lsgi_type]);
+
+    const handleDistrictChange = (val: string | number) => {
+        setFormData(prev => ({ ...prev, district_id: val, lsgi_type: '', lsgi_id: '', ward_id: '' }));
         setLsgis([]);
         setWards([]);
+    };
 
-        if (districtId) {
-            try {
-                // Fetch LSGIs (Municipality, Corporation, GP only for field trainers typically)
-                const allLsgis = await LocationService.getLSGIs({ district: districtId });
-                // Filter relevant types? For now show all
-                setLsgis(allLsgis);
-            } catch (err) {
-                console.error("Failed to load LSGIs", err);
-            }
-        }
+    const handleLsgiTypeChange = (val: string | number) => {
+        setFormData(prev => ({ ...prev, lsgi_type: String(val), lsgi_id: '', ward_id: '' }));
+        setWards([]);
     };
 
     const handleLsgiChange = async (val: string | number) => {
         const lsgiId = Number(val);
-        setFormData({ ...formData, lsgi_id: lsgiId, ward_ids: [] });
+        setFormData(prev => ({ ...prev, lsgi_id: lsgiId, ward_id: '' }));
         setWards([]);
 
         if (lsgiId) {
@@ -101,7 +109,7 @@ const TrainerRegister: React.FC = () => {
                 highest_qualification: formData.highest_qualification,
                 district_id: Number(formData.district_id),
                 lsgi_id: Number(formData.lsgi_id),
-                ward_ids: formData.ward_ids
+                ward_id: formData.ward_id ? Number(formData.ward_id) : null
             });
 
             // On success, redirect to login with a message?
@@ -183,46 +191,38 @@ const TrainerRegister: React.FC = () => {
                                         required
                                     />
                                     <Select
-                                        label="LSGI"
-                                        value={formData.lsgi_id}
-                                        onChange={handleLsgiChange}
-                                        options={lsgis.map(l => ({ value: l.id, label: `${l.name} (${l.lsgi_type})` }))}
+                                        label="LSGI Type"
+                                        value={formData.lsgi_type}
+                                        onChange={handleLsgiTypeChange}
+                                        options={[
+                                            { value: 'GP', label: 'Grama Panchayat' },
+                                            { value: 'MUNICIPALITY', label: 'Municipality' },
+                                            { value: 'CORPORATION', label: 'Corporation' }
+                                        ]}
                                         required
                                         disabled={!formData.district_id}
                                     />
-                                    <div className="col-span-1 md:col-span-3">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Assign Wards (Optional)</label>
-                                        <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto bg-gray-50">
-                                            {wards.length === 0 ? (
-                                                <p className="text-sm text-gray-400 text-center py-2">Select an LSGI to view wards</p>
-                                            ) : (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                                    {wards.map(w => (
-                                                        <label key={w.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={formData.ward_ids.includes(w.id)}
-                                                                onChange={e => {
-                                                                    const checked = e.target.checked;
-                                                                    setFormData(prev => ({
-                                                                        ...prev,
-                                                                        ward_ids: checked
-                                                                            ? [...prev.ward_ids, w.id]
-                                                                            : prev.ward_ids.filter(id => id !== w.id)
-                                                                    }));
-                                                                }}
-                                                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                                                            />
-                                                            <span className="text-sm text-gray-700">
-                                                                <span className="font-semibold text-gray-900 w-6 inline-block">{w.ward_number}</span>
-                                                                {w.name}
-                                                            </span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
+                                    <SearchableSelect
+                                        label="LSGI"
+                                        value={formData.lsgi_id}
+                                        onChange={handleLsgiChange}
+                                        options={lsgis.map(l => ({ value: l.id, label: l.name }))}
+                                        required
+                                        disabled={!formData.lsgi_type || lsgis.length === 0}
+                                        placeholder="Type to search LSGI..."
+                                    />
+                                </div>
+
+                                <div className="mt-4">
+                                    <Select
+                                        label="Residential Ward"
+                                        value={formData.ward_id}
+                                        onChange={(val) => setFormData(prev => ({ ...prev, ward_id: String(val) }))}
+                                        options={wards.map(w => ({ value: w.id, label: w.ward_number ? `${w.ward_number}: ${w.name}` : w.name }))}
+                                        required
+                                        disabled={!formData.lsgi_id || wards.length === 0}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1 ml-1">Select your residential ward.</p>
                                 </div>
                             </div>
 

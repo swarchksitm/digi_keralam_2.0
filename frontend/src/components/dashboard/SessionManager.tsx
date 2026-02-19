@@ -11,6 +11,9 @@ import { Plus, Search, Calendar, MapPin, UserCheck, Clock, FileText, Trash2, Edi
 import { TimePicker } from '../ui/TimePicker';
 import api from '../../api/client';
 import { getMediaUrl } from '../../utils/url';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getLocalizedName } from '../../utils/languageUtils';
+import { AttendanceManager } from './AttendanceManager';
 
 interface Session {
     id: number;
@@ -32,19 +35,14 @@ interface Session {
 
 export const SessionManager: React.FC = () => {
     const { user } = useAuthStore();
+    const { t, language } = useLanguage();
     const [sessions, setSessions] = useState<Session[]>([]);
     const [lsgis, setLsgis] = useState<LSGI[]>([]);
     const [wards, setWards] = useState<Ward[]>([]);
     const [trainers, setTrainers] = useState<AdminUser[]>([]);
 
     // Dummy Wards for Master Trainer (Temporary)
-    const DUMMY_WARDS: Ward[] = [
-        { id: 991, name: 'Ward 1 - Central', ward_number: 1, lsgi: { id: 0, name: 'Demo LSGI', lsgi_type: 'MUNICIPALITY', district: { id: 0, name: 'Demo' } } },
-        { id: 992, name: 'Ward 2 - North', ward_number: 2, lsgi: { id: 0, name: 'Demo LSGI', lsgi_type: 'MUNICIPALITY', district: { id: 0, name: 'Demo' } } },
-        { id: 993, name: 'Ward 3 - South', ward_number: 3, lsgi: { id: 0, name: 'Demo LSGI', lsgi_type: 'MUNICIPALITY', district: { id: 0, name: 'Demo' } } },
-        { id: 994, name: 'Ward 4 - East', ward_number: 4, lsgi: { id: 0, name: 'Demo LSGI', lsgi_type: 'MUNICIPALITY', district: { id: 0, name: 'Demo' } } },
-        { id: 995, name: 'Ward 5 - West', ward_number: 5, lsgi: { id: 0, name: 'Demo LSGI', lsgi_type: 'MUNICIPALITY', district: { id: 0, name: 'Demo' } } },
-    ];
+
 
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -55,8 +53,41 @@ export const SessionManager: React.FC = () => {
     const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
 
+    // Attendance Modal State
+    const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
+    const [attendanceSessionId, setAttendanceSessionId] = useState<string>('');
+
     // Filter Logic
-    const [selectedLsgiFilter, setSelectedLsgiFilter] = useState<number | 'ALL'>('ALL');
+    const getRestrictedLsgiId = () => {
+        const tempLsgi = user?.profile?.lsgi;
+        return (tempLsgi && typeof tempLsgi === 'object' && 'id' in tempLsgi) ? tempLsgi.id : tempLsgi as number | undefined;
+    };
+
+    const restrictedId = getRestrictedLsgiId();
+    // Enforce restriction based on ROLE, not just data presence
+    // NOTE: 'DISTRICT_MASTER_TRAINER' maps to 'LSGI Master Trainer' in backend models
+    const isRestrictedRole = [
+        'DISTRICT_MASTER_TRAINER',
+        'LSGI_MASTER_TRAINER',
+        'LSGI_FIELD_TRAINER',
+        'LSGI_ADMIN'
+    ].includes(user?.role || '');
+
+    const effectiveRestrictedId = isRestrictedRole ? restrictedId : null;
+
+    const [selectedLsgiFilter, setSelectedLsgiFilter] = useState<number | 'ALL'>(effectiveRestrictedId || 'ALL');
+    const [filterWards, setFilterWards] = useState<Ward[]>([]);
+    const [selectedWardFilter, setSelectedWardFilter] = useState<number | 'ALL'>('ALL');
+
+    // Update filter if user loads later
+    useEffect(() => {
+        const rId = getRestrictedLsgiId();
+        if (rId && isRestrictedRole) {
+            setSelectedLsgiFilter(rId);
+            // Fetch wards for the restricted LSGI to populate the filter
+            LocationService.getWards(rId).then(setFilterWards).catch(console.error);
+        }
+    }, [user]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -80,20 +111,15 @@ export const SessionManager: React.FC = () => {
     // Trainers available for selection (filtered by LSGI)
     const [availableTrainers, setAvailableTrainers] = useState<AdminUser[]>([]);
 
-    const getRestrictedLsgiId = () => {
-        const tempLsgi = user?.profile?.lsgi;
-        return (tempLsgi && typeof tempLsgi === 'object' && 'id' in tempLsgi) ? tempLsgi.id : tempLsgi as number | undefined;
-    };
-
     // Ensure form data is correct when modal opens for restricted users
     useEffect(() => {
         if (isCreateModalOpen) {
-            const restrictedId = getRestrictedLsgiId();
-            if (restrictedId) {
-                setFormData(prev => ({ ...prev, lsgi_id: restrictedId }));
+            const rId = getRestrictedLsgiId();
+            if (rId && isRestrictedRole) {
+                setFormData(prev => ({ ...prev, lsgi_id: rId }));
                 // Wards might already be loaded if we auto-fetch in loadData or here
                 if (wards.length === 0) {
-                    LocationService.getWards(restrictedId).then(setWards).catch(console.error);
+                    LocationService.getWards(rId).then(setWards).catch(console.error);
                 }
             }
         }
@@ -123,23 +149,25 @@ export const SessionManager: React.FC = () => {
             // Filter LSGIs to only Municipality, Corporation, and GP
             let filteredLsgis = lsgiRes.filter((l: any) => ['GP', 'MUNICIPALITY', 'CORPORATION'].includes(l.lsgi_type));
 
-            const restrictedId = getRestrictedLsgiId();
-            if (restrictedId) {
+            const rId = getRestrictedLsgiId();
+            if (rId && isRestrictedRole) {
                 // RESTRICTION 1: Master Trainer tied to single LSGI
-                filteredLsgis = filteredLsgis.filter((l: any) => l.id === restrictedId);
+                filteredLsgis = filteredLsgis.filter((l: any) => l.id === rId);
+                // Also fetch wards for filter immediately if possible
+                LocationService.getWards(rId).then(setFilterWards).catch(console.error);
             }
 
             setLsgis(filteredLsgis);
 
             // If restricted and only one LSGI, auto-set form data
-            if (restrictedId && filteredLsgis.length === 1) {
-                setFormData(prev => ({ ...prev, lsgi_id: restrictedId }));
+            if (rId && isRestrictedRole && filteredLsgis.length === 1) {
+                setFormData(prev => ({ ...prev, lsgi_id: rId }));
                 // Pre-load wards
-                LocationService.getWards(restrictedId).then(setWards).catch(console.error);
+                LocationService.getWards(rId).then(setWards).catch(console.error);
 
                 // Pre-load trainers for this LSGI
                 UserService.getAdminUsers('LSGI_FIELD_TRAINER').then(users => {
-                    const lsgiTrainers = users.filter(t => t.profile?.lsgi?.id === restrictedId);
+                    const lsgiTrainers = users.filter(t => t.profile?.lsgi?.id === rId);
                     setAvailableTrainers(lsgiTrainers);
                 }).catch(console.error);
             }
@@ -158,13 +186,6 @@ export const SessionManager: React.FC = () => {
         if (lsgiId) {
             // Fetch Wards
             let wardData = await LocationService.getWards(Number(lsgiId));
-
-            // Inject Dummy Data if enabled or empty and user is Master Trainer
-            if (user?.role === 'DISTRICT_MASTER_TRAINER' && (wardData.length === 0 || true)) { // Force dummy for now as requested
-                // Adapt dummy wards to selected LSGI
-                const adaptedDummy = DUMMY_WARDS.map(w => ({ ...w, lsgi: { ...w.lsgi, id: Number(lsgiId) } }));
-                wardData = [...wardData, ...adaptedDummy];
-            }
 
             setWards(wardData);
 
@@ -226,8 +247,6 @@ export const SessionManager: React.FC = () => {
 
             await loadData();
             setIsCreateModalOpen(false);
-            await loadData();
-            setIsCreateModalOpen(false);
             setFormData({
                 title: '', description: '', lsgi_id: '', ward_id: '',
                 date: '', time: '', venue: '', category: 'AI_EDU', proficiency: 'BEGINNER', mode: 'OFFLINE',
@@ -235,10 +254,10 @@ export const SessionManager: React.FC = () => {
             });
             setIsEditing(false);
             setResourceFile(null);
-            alert(isEditing ? "Session updated successfully!" : "Session created successfully!");
+            alert(isEditing ? t('dashboard.success_session_update') : t('dashboard.success_session_create'));
         } catch (error: any) {
             console.error("Failed to create session", error);
-            alert("Failed to create session: " + JSON.stringify(error.response?.data));
+            alert(`${t('dashboard.error_session_create')}: ` + JSON.stringify(error.response?.data));
         } finally {
             setIsSaving(false);
         }
@@ -258,7 +277,7 @@ export const SessionManager: React.FC = () => {
             setIsAssignModalOpen(true);
         } catch (e) {
             console.error(e);
-            alert("Failed to load trainers");
+            alert(t('dashboard.error_load_trainers'));
         }
     };
 
@@ -274,17 +293,17 @@ export const SessionManager: React.FC = () => {
             });
             await loadData();
             setIsAssignModalOpen(false);
-            alert("Trainer assigned successfully!");
+            alert(t('dashboard.success_trainer_assign'));
         } catch (error: any) {
             console.error("Failed to assign trainer", error);
-            alert("Failed to assign trainer: " + JSON.stringify(error.response?.data));
+            alert(`${t('dashboard.error_trainer_assign')}: ` + JSON.stringify(error.response?.data));
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDelete = async (sessionId: number) => {
-        if (!confirm("Are you sure you want to delete this session? This action cannot be undone.")) return;
+        if (!confirm(t('dashboard.confirm_delete_session'))) return;
 
         // Optimistic UI or loading state? Global loading is simplest
         setIsLoading(true);
@@ -292,10 +311,10 @@ export const SessionManager: React.FC = () => {
             await api.delete(`/training/sessions/${sessionId}/`);
             // Remove locally to avoid full reload delay
             setSessions(prev => prev.filter(s => s.id !== sessionId));
-            alert("Session deleted successfully.");
+            alert(t('dashboard.success_session_delete'));
         } catch (error: any) {
             console.error("Failed to delete session", error);
-            alert("Failed to delete session: " + (error.response?.data?.detail || "Unknown error"));
+            alert(`${t('dashboard.error_session_delete')}: ` + (error.response?.data?.detail || "Unknown error"));
             await loadData(); // Reload on error to ensure sync
         } finally {
             setIsLoading(false);
@@ -303,16 +322,18 @@ export const SessionManager: React.FC = () => {
     };
 
     // Filtered Sessions
-    // Filtered Sessions
     const filteredSessions = sessions.filter(s => {
         const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (s.ward && typeof s.ward !== 'number' && s.ward.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            (s.ward && typeof s.ward !== 'number' && getLocalizedName(s.ward, language).toLowerCase().includes(searchTerm.toLowerCase()));
 
         const matchesLsgi = selectedLsgiFilter === 'ALL' ||
             (s.ward && typeof s.ward !== 'number' && s.ward.lsgi?.id === selectedLsgiFilter) ||
             !s.ward; // Show sessions with pending location to allow management
 
-        return matchesSearch && matchesLsgi;
+        const matchesWard = selectedWardFilter === 'ALL' ||
+            (s.ward && typeof s.ward !== 'number' && s.ward.id === selectedWardFilter);
+
+        return matchesSearch && matchesLsgi && matchesWard;
     });
 
     const handleEdit = (session: Session) => {
@@ -353,13 +374,16 @@ export const SessionManager: React.FC = () => {
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex flex-col gap-6 mb-6">
+
+
+
                 <div className="flex justify-between items-start">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Training Sessions</h2>
-                        <p className="text-sm text-gray-500">Schedule and manage sessions in your district</p>
+                        <h2 className="text-xl font-bold text-gray-900">{t('dashboard.title_schedule_session')}</h2>
+                        <p className="text-sm text-gray-500">{t('dashboard.desc_manage_sessions_attendance')}</p>
                     </div>
                     <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2 rounded-full">
-                        <Plus className="h-4 w-4" /> Create Session
+                        <Plus className="h-4 w-4" /> {t('dashboard.title_schedule_session')}
                     </Button>
                 </div>
 
@@ -368,30 +392,60 @@ export const SessionManager: React.FC = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search sessions..."
+                            placeholder={`${t('common.search')}...`}
                             className="pl-9 pr-4 py-2 w-full rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <select
-                        className="rounded-lg border-gray-200 text-sm focus:ring-primary-500 py-2 px-4"
-                        value={selectedLsgiFilter}
-                        onChange={e => setSelectedLsgiFilter(e.target.value === 'ALL' ? 'ALL' : Number(e.target.value))}
-                    >
-                        <option value="ALL">All LSGIs</option>
-                        {lsgis.map(l => (
-                            <option key={l.id} value={l.id}>{l.name}</option>
-                        ))}
-                    </select>
+
+                    {/* LSGI Filter */}
+                    {isRestrictedRole ? (
+                        <div className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 whitespace-nowrap flex items-center">
+                            {(restrictedId && lsgis.find(l => l.id === restrictedId)?.name) || t('dashboard.assigned_lsgi') || 'Assigned LSGI'}
+                        </div>
+                    ) : (
+                        <select
+                            className="rounded-lg border-gray-200 text-sm focus:ring-primary-500 py-2 px-4"
+                            value={selectedLsgiFilter}
+                            onChange={e => {
+                                const val = e.target.value === 'ALL' ? 'ALL' : Number(e.target.value);
+                                setSelectedLsgiFilter(val);
+                                setSelectedWardFilter('ALL');
+                                if (val !== 'ALL') {
+                                    LocationService.getWards(val).then(setFilterWards).catch(console.error);
+                                } else {
+                                    setFilterWards([]);
+                                }
+                            }}
+                        >
+                            <option value="ALL">{t('dashboard.all_lsgis')}</option>
+                            {lsgis.map(l => (
+                                <option key={l.id} value={l.id}>{getLocalizedName(l, language)}</option>
+                            ))}
+                        </select>
+                    )}
+
+                    {/* Ward Filter (Show if restricted OR if an LSGI is selected) */}
+                    {(isRestrictedRole || selectedLsgiFilter !== 'ALL') && (
+                        <Select
+                            value={selectedWardFilter}
+                            onChange={val => setSelectedWardFilter(val === 'ALL' ? 'ALL' : Number(val))}
+                            options={[
+                                { value: 'ALL', label: t('dashboard.all_wards') },
+                                ...filterWards.map(w => ({ value: w.id, label: `${w.ward_number}: ${getLocalizedName(w, language)}` }))
+                            ]}
+                            className="min-w-[150px]"
+                        />
+                    )}
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {isLoading ? (
-                    <div className="col-span-full text-center py-10 text-gray-500">Loading sessions...</div>
+                    <div className="col-span-full text-center py-10 text-gray-500">{t('common.loading')}</div>
                 ) : filteredSessions.length === 0 ? (
-                    <div className="col-span-full text-center py-10 text-gray-500">No sessions found.</div>
+                    <div className="col-span-full text-center py-10 text-gray-500">{t('dashboard.no_sessions_found')}</div>
                 ) : (
                     filteredSessions.map(session => (
                         <div key={session.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow bg-white">
@@ -401,15 +455,15 @@ export const SessionManager: React.FC = () => {
                                     <div className="flex items-center text-xs text-gray-500 mt-1">
                                         <MapPin className="h-3 w-3 mr-1" />
                                         {session.ward && typeof session.ward === 'object'
-                                            ? `${session.ward.lsgi?.name || 'LSGI'} - Ward ${session.ward.name}`
-                                            : 'Location Pending'}
+                                            ? `${getLocalizedName(session.ward.lsgi, language) || 'LSGI'} - ${t('dashboard.ward')} ${getLocalizedName(session.ward, language)}`
+                                            : t('dashboard.location_pending')}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <span className={`px-2 py-1 rounded text-xs font-semibold ${session.status === 'SCHEDULED' ? 'bg-blue-50 text-blue-700' :
                                         session.status === 'COMPLETED' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
                                         }`}>
-                                        {session.status}
+                                        {t(`dashboard.${session.status.toLowerCase()}`) || session.status}
                                     </span>
 
                                     {user?.role === 'DISTRICT_MASTER_TRAINER' && (
@@ -420,7 +474,7 @@ export const SessionManager: React.FC = () => {
                                                     handleEdit(session);
                                                 }}
                                                 className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                title="Edit Session"
+                                                title={t('dashboard.edit')}
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
@@ -430,9 +484,20 @@ export const SessionManager: React.FC = () => {
                                                     handleDelete(session.id);
                                                 }}
                                                 className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                title="Delete Session"
+                                                title={t('dashboard.delete')}
                                             >
                                                 <Trash2 className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setAttendanceSessionId(String(session.id));
+                                                    setIsAttendanceModalOpen(true);
+                                                }}
+                                                className="p-1 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors"
+                                                title={t('dashboard.view_attendees')}
+                                            >
+                                                <UserCheck className="h-4 w-4" />
                                             </button>
                                         </>
                                     )}
@@ -453,7 +518,7 @@ export const SessionManager: React.FC = () => {
                             {/* Resources Section */}
                             {session.resources && session.resources.length > 0 && (
                                 <div className="mb-4 pt-3 border-t border-gray-100">
-                                    <h4 className="text-xs font-semibold text-gray-700 mb-2">Training Materials:</h4>
+                                    <h4 className="text-xs font-semibold text-gray-700 mb-2">{t('dashboard.training_materials')}:</h4>
                                     <div className="space-y-1">
                                         {session.resources.map((res: any) => (
                                             <a
@@ -464,7 +529,7 @@ export const SessionManager: React.FC = () => {
                                                 className="flex items-center gap-2 text-xs text-blue-600 hover:underline p-1 hover:bg-blue-50 rounded"
                                             >
                                                 <FileText className="h-3 w-3" />
-                                                {res.title || 'View Document'}
+                                                {res.title || t('dashboard.view_document')}
                                             </a>
                                         ))}
                                     </div>
@@ -478,7 +543,7 @@ export const SessionManager: React.FC = () => {
                                     </span>
                                 ) : (
                                     <span className="text-xs font-medium text-amber-600 flex items-center">
-                                        Trainer Pending
+                                        {t('dashboard.trainer_pending')}
                                     </span>
                                 )}
 
@@ -487,7 +552,7 @@ export const SessionManager: React.FC = () => {
                                         onClick={() => openAssignModal(session)}
                                         className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                                     >
-                                        Assign Trainer
+                                        {t('dashboard.assign_trainer')}
                                     </button>
                                 )}
                             </div>
@@ -496,16 +561,16 @@ export const SessionManager: React.FC = () => {
             </div>
 
             {/* Create/Edit Session Modal */}
-            <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setIsEditing(false); }} title={isEditing ? "Edit Session" : "Schedule New Session"}>
+            <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); setIsEditing(false); }} title={isEditing ? t('dashboard.edit') : t('dashboard.title_schedule_session')}>
                 <form onSubmit={handleCreateSubmit} className="space-y-4">
-                    <Input label="Session Title" value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
+                    <Input label={t('dashboard.label_session_title')} value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             {lsgis.length === 1 ? (
                                 <Input
                                     label="LSGI"
-                                    value={lsgis[0].name}
+                                    value={getLocalizedName(lsgis[0], language)}
                                     readOnly
                                     className="bg-gray-50 text-gray-500"
                                 />
@@ -514,25 +579,25 @@ export const SessionManager: React.FC = () => {
                                     label="LSGI"
                                     value={formData.lsgi_id || ''}
                                     onChange={handleLsgiChange}
-                                    options={lsgis.map(l => ({ value: l.id, label: l.name }))}
+                                    options={lsgis.map(l => ({ value: l.id, label: getLocalizedName(l, language) }))}
                                     required
                                 />
                             )}
                         </div>
                         <div>
                             <Select
-                                label="Ward"
+                                label={t('dashboard.label_wards')}
                                 value={formData.ward_id}
                                 onChange={val => setFormData({ ...formData, ward_id: val })}
-                                options={wards.map(w => ({ value: w.id, label: `${w.ward_number}: ${w.name}` }))}
+                                options={wards.map(w => ({ value: w.id, label: `${w.ward_number}: ${getLocalizedName(w, language)}` }))}
                                 disabled={!formData.lsgi_id}
                             />
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col">
-                            <label className="text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <label className="text-sm font-medium text-gray-700 mb-1">{t('dashboard.label_date')}</label>
                             <input
                                 type="date"
                                 className="rounded-lg border-gray-200 text-sm focus:ring-primary-500 py-2 px-3 w-full"
@@ -543,21 +608,21 @@ export const SessionManager: React.FC = () => {
                         </div>
                         <div className="flex flex-col">
                             <TimePicker
-                                label="Time"
+                                label={t('dashboard.label_time')}
                                 value={formData.time}
                                 onChange={val => setFormData({ ...formData, time: val })}
                             />
                         </div>
                     </div>
-                    <Input label="Venue" value={formData.venue} onChange={e => setFormData({ ...formData, venue: e.target.value })} required />
+                    <Input label={t('dashboard.label_venue')} value={formData.venue} onChange={e => setFormData({ ...formData, venue: e.target.value })} required />
 
                     <div className="grid grid-cols-1 gap-4">
                         <Select
-                            label="Assign Field Trainer (Optional)"
+                            label={`${t('dashboard.assign_trainer')} (${t('common.optional') || 'Optional'})`}
                             value={formData.trainer_id}
                             onChange={val => setFormData({ ...formData, trainer_id: val })}
                             options={[
-                                { value: '', label: 'Select Later (Pending)' },
+                                { value: '', label: t('dashboard.select_later') },
                                 ...availableTrainers.map(t => ({
                                     value: t.id,
                                     label: `${t.first_name} ${t.last_name || ''}`.trim() || t.username
@@ -567,9 +632,9 @@ export const SessionManager: React.FC = () => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Select
-                            label="Category"
+                            label={t('dashboard.label_category')}
                             value={formData.category}
                             onChange={val => setFormData({ ...formData, category: String(val) })}
                             options={[
@@ -579,7 +644,7 @@ export const SessionManager: React.FC = () => {
                             ]}
                         />
                         <Select
-                            label="Proficiency"
+                            label={t('dashboard.label_proficiency')}
                             value={formData.proficiency}
                             onChange={val => setFormData({ ...formData, proficiency: String(val) })}
                             options={[
@@ -593,7 +658,7 @@ export const SessionManager: React.FC = () => {
                     {/* Resource Upload */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Session Materials (Optional)
+                            {t('dashboard.label_upload_materials')}
                         </label>
                         <Input
                             type="file"
@@ -603,38 +668,38 @@ export const SessionManager: React.FC = () => {
                             }}
                             className="text-sm"
                         />
-                        <p className="text-xs text-gray-500 mt-1">Upload PDF, PPT, or other materials for the trainer.</p>
+                        <p className="text-xs text-gray-500 mt-1">{t('dashboard.hint_upload_materials')}</p>
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" isLoading={isSaving}>Schedule Session</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>{t('common.cancel')}</Button>
+                        <Button type="submit" isLoading={isSaving}>{t('dashboard.title_schedule_session')}</Button>
                     </div>
                 </form>
             </Modal>
 
             {/* Assign Trainer Modal */}
-            <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title="Assign Trainer">
+            <Modal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} title={t('dashboard.assign_trainer')}>
                 <form onSubmit={handleAssignSubmit} className="space-y-4">
-                    <p className="text-sm text-gray-500">Select a Field Trainer to conduct this session.</p>
+                    <p className="text-sm text-gray-500">{t('dashboard.desc_select_trainer')}</p>
 
                     <div className="max-h-60 overflow-y-auto border rounded-lg p-2">
                         {trainers.length === 0 ? (
-                            <div className="text-center py-4 text-gray-500">No trainers found.</div>
+                            <div className="text-center py-4 text-gray-500">{t('dashboard.no_trainers_found')}</div>
                         ) : (
-                            trainers.map(t => (
-                                <label key={t.id} className="flex items-center p-3 hover:bg-gray-50 rounded cursor-pointer border-b last:border-0 border-gray-100">
+                            trainers.map(trainer => (
+                                <label key={trainer.id} className="flex items-center p-3 hover:bg-gray-50 rounded cursor-pointer border-b last:border-0 border-gray-100">
                                     <input
                                         type="radio"
                                         name="trainer"
-                                        value={t.id}
-                                        checked={String(assignmentData.trainer_id) === String(t.id)}
-                                        onChange={() => setAssignmentData({ trainer_id: t.id })}
+                                        value={trainer.id}
+                                        checked={String(assignmentData.trainer_id) === String(trainer.id)}
+                                        onChange={() => setAssignmentData({ trainer_id: trainer.id })}
                                         className="mr-3 h-4 w-4 text-primary-600 focus:ring-primary-500"
                                     />
                                     <div>
-                                        <div className="font-medium text-gray-900">{t.first_name} {t.last_name || t.username}</div>
-                                        <div className="text-xs text-gray-500">{t.profile?.lsgi?.name || 'Unassigned LSGI'}</div>
+                                        <div className="font-medium text-gray-900">{trainer.first_name} {trainer.last_name || trainer.username}</div>
+                                        <div className="text-xs text-gray-500">{trainer.profile?.lsgi?.name || t('dashboard.unassigned_lsgi')}</div>
                                     </div>
                                 </label>
                             ))
@@ -642,11 +707,20 @@ export const SessionManager: React.FC = () => {
                     </div>
 
                     <div className="flex justify-end gap-3 pt-4">
-                        <Button type="button" variant="outline" onClick={() => setIsAssignModalOpen(false)}>Cancel</Button>
-                        <Button type="submit" isLoading={isSaving} disabled={!assignmentData.trainer_id}>Confirm Assignment</Button>
+                        <Button type="button" variant="outline" onClick={() => setIsAssignModalOpen(false)}>{t('common.cancel')}</Button>
+                        <Button type="submit" isLoading={isSaving} disabled={!assignmentData.trainer_id}>{t('dashboard.confirm_assignment')}</Button>
                     </div>
                 </form>
             </Modal >
+
+
+            {/* View Attendees Modal */}
+            <Modal isOpen={isAttendanceModalOpen} onClose={() => setIsAttendanceModalOpen(false)} title={t('dashboard.view_attendees')} size="xl">
+                <AttendanceManager initialSessionId={attendanceSessionId} />
+                <div className="flex justify-end pt-4">
+                    <Button variant="outline" onClick={() => setIsAttendanceModalOpen(false)}>{t('common.close')}</Button>
+                </div>
+            </Modal>
         </div >
     );
 };

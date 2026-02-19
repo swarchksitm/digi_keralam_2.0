@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '../../components/layout/Navbar';
 import { SessionList } from '../../components/dashboard/SessionList';
@@ -8,9 +9,12 @@ import api from '../../api/client';
 import type { TrainingSession } from '../../types/session';
 import { Calendar, Users, CheckSquare, Upload, FileSpreadsheet, MapPin, Home } from 'lucide-react';
 import { useAuthStore } from '../../auth/store';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { getLocalizedName } from '../../utils/languageUtils';
 
 const TrainerDashboard: React.FC = () => {
     const { user } = useAuthStore();
+    const { t, language } = useLanguage();
     const [sessions, setSessions] = useState<TrainingSession[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -82,34 +86,34 @@ const TrainerDashboard: React.FC = () => {
             <Navbar />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Trainer Dashboard</h1>
-                    <p className="text-gray-600">Manage your assigned training sessions and track progress.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.trainer_dashboard')}</h1>
+                    <p className="text-gray-600">{t('dashboard.desc_trainer_dashboard')}</p>
                 </div>
 
                 {/* Trainer Profile Card */}
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-8">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Welcome, {user?.first_name || 'Trainer'}</h2>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">{t('common.welcome')}, {user?.first_name || 'Trainer'}</h2>
                     <div className="flex flex-wrap gap-6 text-sm text-gray-600">
                         <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100">
                             <MapPin className="h-4 w-4 text-primary-600" />
-                            <span className="font-medium">Assigned LSGI:</span>
+                            <span className="font-medium">{t('dashboard.assigned_lsgi')}:</span>
                             <span>
                                 {user?.profile?.lsgi
-                                    ? (typeof user.profile.lsgi === 'object' ? user.profile.lsgi.name : 'LSGI #' + user.profile.lsgi)
-                                    : 'Not Assigned'}
+                                    ? (typeof user.profile.lsgi === 'object' ? getLocalizedName(user.profile.lsgi, language) : 'LSGI #' + user.profile.lsgi)
+                                    : t('dashboard.not_assigned')}
                             </span>
                         </div>
                         <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-100 flex-1">
                             <Home className="h-4 w-4 text-primary-600 flex-shrink-0" />
-                            <span className="font-medium whitespace-nowrap">Assigned Wards:</span>
+                            <span className="font-medium whitespace-nowrap">{t('dashboard.assigned_wards')}:</span>
                             <div className="flex flex-wrap gap-1">
                                 {user?.profile?.wards && user.profile.wards.length > 0
                                     ? user.profile.wards.map((ward: any) => (
                                         <span key={ward.id} className="text-xs bg-white px-1.5 py-0.5 rounded border border-gray-200 text-gray-700">
-                                            {ward.ward_number}: {ward.name}
+                                            {ward.ward_number ? `${ward.ward_number}: ` : ''}{getLocalizedName(ward, language)}
                                         </span>
                                     ))
-                                    : <span className="text-gray-500 italic">Not Assigned (Area Wide)</span>
+                                    : <span className="text-gray-500 italic">{t('dashboard.area_wide')}</span>
                                 }
                             </div>
                         </div>
@@ -120,34 +124,34 @@ const TrainerDashboard: React.FC = () => {
                 {!loading && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <StatsCard
-                            title="Total Sessions"
+                            title={t('dashboard.total_sessions')}
                             value={totalSessions}
                             icon={Calendar}
                             color="blue"
-                            description="Assigned"
+                            description={t('dashboard.assigned')}
                         />
                         <StatsCard
-                            title="Total Attendees"
+                            title={t('dashboard.total_attendees')}
                             value={totalAttendees}
                             icon={Users}
                             color="green"
-                            description="Across all sessions"
+                            description={t('dashboard.across_sessions')}
                         />
                         <StatsCard
-                            title="Completed"
+                            title={t('dashboard.completed')}
                             value={completedSessions}
                             icon={CheckSquare}
                             color="purple"
-                            description="Sessions conducted"
+                            description={t('dashboard.sessions_conducted')}
                         />
                     </div>
                 )}
 
                 <SessionList
-                    title="Assigned Sessions"
+                    title={t('dashboard.assigned_sessions')}
                     sessions={sessions}
                     isLoading={loading}
-                    emptyMessage="You have no assigned sessions."
+                    emptyMessage={t('dashboard.no_sessions')}
                     renderAction={(session) => (
                         <Button
                             variant="outline"
@@ -156,7 +160,7 @@ const TrainerDashboard: React.FC = () => {
                             onClick={() => handleOpenUpload(session.id)}
                         >
                             <Upload className="h-3 w-3" />
-                            Upload Attendees
+                            {t('dashboard.upload_attendees')}
                         </Button>
                     )}
                 />
@@ -165,20 +169,20 @@ const TrainerDashboard: React.FC = () => {
                 <Modal
                     isOpen={isUploadModalOpen}
                     onClose={() => setIsUploadModalOpen(false)}
-                    title="Upload Attendance"
+                    title={t('dashboard.upload_attendance')}
                 >
                     <form onSubmit={handleUploadSubmit} className="space-y-4">
                         <div className="p-4 bg-blue-50 text-blue-800 rounded-lg text-sm">
-                            <p className="font-medium mb-1">Instructions:</p>
+                            <p className="font-medium mb-1">{t('dashboard.instructions')}:</p>
                             <ul className="list-disc pl-4 space-y-1">
-                                <li>Upload Excel (.xlsx) or CSV file.</li>
-                                <li>File must contain <strong>Name</strong> and <strong>Phone</strong> columns.</li>
-                                <li>Attendees will be automatically added to the selected session.</li>
+                                <li>{t('dashboard.instruction_1')}</li>
+                                <li>{t('dashboard.instruction_2')}</li>
+                                <li>{t('dashboard.instruction_3')}</li>
                             </ul>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Select File</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('dashboard.select_file')}</label>
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors bg-gray-50">
                                 <FileSpreadsheet className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                                 <input
@@ -190,17 +194,17 @@ const TrainerDashboard: React.FC = () => {
                                     required
                                 />
                                 <label htmlFor="file-upload" className="cursor-pointer">
-                                    <span className="text-blue-600 font-medium hover:underline">Click to upload</span>
+                                    <span className="text-blue-600 font-medium hover:underline">{t('dashboard.click_upload')}</span>
                                     <span className="text-gray-500 block text-xs mt-1">
-                                        {uploadFile ? uploadFile.name : "or drag and drop"}
+                                        {uploadFile ? uploadFile.name : t('dashboard.drag_drop')}
                                     </span>
                                 </label>
                             </div>
                         </div>
 
                         <div className="flex justify-end gap-3 pt-4">
-                            <Button type="button" variant="outline" onClick={() => setIsUploadModalOpen(false)}>Cancel</Button>
-                            <Button type="submit" isLoading={isUploading}>Upload & Process</Button>
+                            <Button type="button" variant="outline" onClick={() => setIsUploadModalOpen(false)}>{t('common.cancel')}</Button>
+                            <Button type="submit" isLoading={isUploading}>{t('dashboard.upload_process')}</Button>
                         </div>
                     </form>
                 </Modal>

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../auth/store';
 import { LogOut, User, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export const UserMenu: React.FC = () => {
     const { user, logout } = useAuthStore();
@@ -9,6 +10,7 @@ export const UserMenu: React.FC = () => {
     const location = useLocation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { t } = useLanguage();
 
     const handleLogout = () => {
         logout();
@@ -86,7 +88,7 @@ export const UserMenu: React.FC = () => {
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-50 transform origin-top-right transition-all">
                     <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <p className="text-sm text-gray-500">Signed in as</p>
+                        <p className="text-sm text-gray-500">{t('dashboard.signed_in_as')}</p>
                         <p className="text-sm font-bold text-gray-900 truncate">{user.username}</p>
                     </div>
 
@@ -98,7 +100,7 @@ export const UserMenu: React.FC = () => {
                                 onClick={() => setIsOpen(false)}
                             >
                                 <LayoutDashboard className="h-4 w-4" />
-                                My Dashboard
+                                {t('dashboard.my_dashboard')}
                             </Link>
                         )}
                         <Link
@@ -107,7 +109,7 @@ export const UserMenu: React.FC = () => {
                             onClick={() => setIsOpen(false)}
                         >
                             <User className="h-4 w-4" />
-                            My Profile
+                            {t('dashboard.my_profile')}
                         </Link>
                     </div>
 
@@ -117,7 +119,7 @@ export const UserMenu: React.FC = () => {
                             className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700"
                         >
                             <LogOut className="h-4 w-4" />
-                            Sign out
+                            {t('dashboard.sign_out')}
                         </button>
                     </div>
                 </div>

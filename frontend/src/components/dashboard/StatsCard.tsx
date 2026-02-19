@@ -10,6 +10,8 @@ interface StatsCardProps {
     description?: string;
     trend?: 'up' | 'down' | 'neutral';
     color?: 'blue' | 'green' | 'purple' | 'orange';
+    onClick?: () => void;
+    className?: string;
 }
 
 const colorMap = {
@@ -24,10 +26,12 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     value,
     icon: Icon,
     description,
-    color = 'blue'
+    color = 'blue',
+    onClick,
+    className
 }) => {
     return (
-        <Card>
+        <Card onClick={onClick} className={clsx(className, onClick && "cursor-pointer hover:shadow-md transition-shadow")}>
             <CardContent className="p-6 flex items-center justify-between">
                 <div>
                     <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>

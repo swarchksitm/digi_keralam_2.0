@@ -23,6 +23,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
              raise
 
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from .serializers import AdminUserSerializer
 from .permissions import IsKsitSuperAdmin, IsStateAdmin, IsDistrictAdmin, IsLsgiAdmin, IsMasterTrainer
@@ -46,7 +47,16 @@ class AdminUserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = User.objects.all()
+        queryset = User.objects.select_related(
+            'profile', 
+            'profile__district', 
+            'profile__lsgi', 
+            'profile__ward',
+            'profile__lsgi__district',
+            'profile__lsgi__block'
+        ).prefetch_related(
+            'profile__wards'
+        ).all()
 
         if user.role == User.Role.KSITM_SUPER_ADMIN:
             # Super Admin sees State Admins by default, or District Admins if requested
@@ -73,6 +83,11 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             if target_role:
                 qs = qs.filter(role=target_role)
             
+            # Optional: Filter by LSGI (e.g. for Master Trainers in specific LSGI)
+            lsgi_id = self.request.query_params.get('lsgi_id')
+            if lsgi_id:
+                qs = qs.filter(profile__lsgi_id=lsgi_id)
+
             return qs
 
         elif user.role == User.Role.LSGI_ADMIN:
@@ -106,6 +121,12 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             # If Master Trainer is bound to a specific LSGI (e.g. created by LSGI Admin), restrict visibility
             if user.profile.lsgi:
                 qs = qs.filter(profile__lsgi=user.profile.lsgi)
+            
+            # Filter by verification status if requested
+            is_verified_param = self.request.query_params.get('is_verified')
+            if is_verified_param is not None:
+                is_verified = is_verified_param.lower() == 'true'
+                qs = qs.filter(is_verified=is_verified)
                 
             return qs
             
@@ -185,6 +206,60 @@ class AdminUserViewSet(viewsets.ModelViewSet):
 
             serializer.save(role=User.Role.LSGI_FIELD_TRAINER)
 
+    def destroy(self, request, *args, **kwargs):
+        import logging
+        from training_sessions.models import TrainingSession, Resource
+        
+        logger = logging.getLogger(__name__)
+        try:
+            instance = self.get_object()
+            user = instance
+            
+            # Manually delete protected/related objects if this is an Admin action
+            # 1. Sessions created by this user (District Master Trainer)
+            TrainingSession.objects.filter(created_by=user).delete()
+            
+            # 2. Resources uploaded by this user
+            Resource.objects.filter(uploaded_by=user).delete()
+            
+            return super().destroy(request, *args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error deleting user: {e}")
+            return Response({"detail": f"Failed to delete user: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def approve(self, request, pk=None):
+        user = self.get_object()
+        # Only allow approving unverified users
+        if user.is_verified:
+            return Response({"detail": "User is already verified."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Handle Ward Assignment
+        ward_ids = request.data.get('ward_ids', [])
+        if ward_ids:
+            # Validate Wards
+            from locations.models import Ward
+            wards = Ward.objects.filter(id__in=ward_ids)
+            if len(wards) != len(ward_ids):
+                 return Response({"detail": "Invalid ward IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Additional Validation: Check against Approver's Wards (if Master Trainer)
+            if request.user.role == User.Role.DISTRICT_MASTER_TRAINER:
+                approver_profile = getattr(request.user, 'profile', None)
+                if approver_profile and approver_profile.wards.exists():
+                    allowed_ids = list(approver_profile.wards.values_list('id', flat=True))
+                    if any(w_id not in allowed_ids for w_id in ward_ids):
+                         return Response({"detail": "You can only assign wards that are assigned to you."}, status=status.HTTP_403_FORBIDDEN)
+
+            # Assign Wards
+            if hasattr(user, 'profile'):
+                user.profile.wards.set(wards)
+                user.profile.save()
+        
+        user.is_verified = True
+        user.save()
+        return Response({"detail": "User approved successfully."})
+
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = AdminUserSerializer
@@ -200,4 +275,9 @@ class RegisterView(generics.CreateAPIView):
 
         # If Field Trainer, ensure LSGI is provided? Serializer handles it but we can enforce here too
         
-        serializer.save(role=role)
+        # Field Trainers registering publicly are NOT verified by default
+        is_verified = True
+        if role == 'LSGI_FIELD_TRAINER':
+            is_verified = False
+
+        serializer.save(role=role, is_verified=is_verified)
