@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
                             <div className="h-8 w-px bg-gray-200"></div>
                             <a href="https://itmission.kerala.gov.in/" target="_blank" rel="noopener noreferrer">
                                 <img
-                                    src="/images/ksitm.svg"
+                                    src="/images/itmission25.svg"
                                     alt="Kerala State IT Mission Logo"
                                     className="h-12 w-auto"
                                 />

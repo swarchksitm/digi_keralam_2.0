@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Modal } from '../ui/Modal';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { Plus, Trash2, UserCog } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getLocalizedName } from '../../utils/languageUtils';
@@ -19,9 +20,10 @@ interface UserManagementProps {
 export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title, readOnly = false }) => {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [districts, setDistricts] = useState<District[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
     const { t, language } = useLanguage();
 
     const [formData, setFormData] = useState({
@@ -39,7 +41,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
     }, []);
 
     const loadData = async () => {
-        setIsLoading(true);
         try {
             const [uData, dData] = await Promise.all([
                 UserService.getAdminUsers(roleType),
@@ -49,8 +50,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
             setDistricts(dData);
         } catch (error) {
             console.error("Failed to load users", error);
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -77,11 +76,12 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm(t('common.confirm_delete'))) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmation.id) return;
         try {
-            await UserService.deleteAdminUser(id);
-            setUsers(prev => prev.filter(u => u.id !== id));
+            await UserService.deleteAdminUser(deleteConfirmation.id);
+            setUsers(prev => prev.filter(u => u.id !== deleteConfirmation.id));
+            setDeleteConfirmation({ isOpen: false, id: null });
         } catch (error) {
             alert(t('dashboard.error_delete_user'));
         }
@@ -123,7 +123,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                             <tr key={user.id} className="hover:bg-gray-50/50">
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-full bg-[#193756] text-white flex items-center justify-center">
                                             <UserCog className="h-4 w-4" />
                                         </div>
                                         <div>
@@ -133,7 +133,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                                     </div>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md text-xs font-medium">
+                                    <span className="bg-[#193756]/10 text-[#193756] px-2 py-1 rounded-md text-xs font-medium">
                                         {user.role}
                                     </span>
                                 </td>
@@ -148,7 +148,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                                 )}
                                 {!readOnly && (
                                     <td className="px-4 py-3 text-right">
-                                        <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full">
+                                        <button
+                                            onClick={() => setDeleteConfirmation({ isOpen: true, id: user.id })}
+                                            className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                                            title={t('common.delete')}
+                                        >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                     </td>
@@ -196,6 +200,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ roleType, title,
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ isOpen: false, id: null })}
+                onConfirm={handleDelete}
+                title={t('common.confirm_delete')}
+                message={t('dashboard.warning_delete_user')}
+                variant="danger"
+            />
         </div>
     );
 };

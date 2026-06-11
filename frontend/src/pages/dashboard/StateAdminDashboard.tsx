@@ -33,12 +33,12 @@ interface StateAdminDashboardProps {
     isLoading?: boolean;
 }
 
-export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats: propStats, isLoading: propIsLoading }) => {
+export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = () => {
     const { user } = useAuthStore();
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'DISTRICTS'>('OVERVIEW');
     const [stats, setStats] = useState<StateStats | null>(null);
-    const [isLoading, setIsLoading] = useState(propIsLoading ?? true);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -94,7 +94,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             title={t('dashboard.master_trainers')}
                                             value={stats.trainers.master_trainers}
                                             icon={Award}
-                                            color="purple"
+                                            color="blue"
                                             description={t('dashboard.desc_master_trainers')}
                                         />
                                         <StatsCard
@@ -122,7 +122,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             title={t('dashboard.total_attendance')}
                                             value={stats.attendance.total_attendance_records}
                                             icon={TrendingUp}
-                                            color="orange"
+                                            color="green"
                                             description={t('dashboard.desc_total_attendance')}
                                         />
                                         <StatsCard
@@ -143,7 +143,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             title={t('dashboard.total_sessions')}
                                             value={stats.sessions.total}
                                             icon={Calendar}
-                                            color="purple"
+                                            color="blue"
                                             description={t('dashboard.desc_total_sessions')}
                                         />
                                         <StatsCard
@@ -171,7 +171,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                             title={t('dashboard.districts_covered')}
                                             value={stats.coverage.districts_covered}
                                             icon={MapPin}
-                                            color="orange"
+                                            color="green"
                                             description={`${t('dashboard.desc_districts_covered')} (${stats.coverage.total_districts})`}
                                         />
                                         <StatsCard
@@ -212,7 +212,7 @@ export const StateAdminDashboard: React.FC<StateAdminDashboardProps> = ({ stats:
                                         className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                         onClick={() => setActiveTab('DISTRICTS')}
                                     >
-                                        <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                                        <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                             <Building2 className="h-6 w-6" />
                                         </div>
                                         <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.district_management')}</h3>

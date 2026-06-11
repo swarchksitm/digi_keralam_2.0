@@ -102,8 +102,12 @@ const SessionCreate: React.FC = () => {
     }, [selectedLSGI]);
 
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSelectChange = (name: string, value: string | number) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -176,9 +180,8 @@ const SessionCreate: React.FC = () => {
                                 />
                                 <Select
                                     label="Category"
-                                    name="category"
                                     value={formData.category}
-                                    onChange={handleChange}
+                                    onChange={(val) => handleSelectChange('category', val)}
                                     required
                                     options={[
                                         { value: 'SAFE_TECH', label: 'Safe Tech' },
@@ -191,9 +194,8 @@ const SessionCreate: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Select
                                     label="Proficiency Level"
-                                    name="proficiency"
                                     value={formData.proficiency}
-                                    onChange={handleChange}
+                                    onChange={(val) => handleSelectChange('proficiency', val)}
                                     required
                                     options={[
                                         { value: 'BEGINNER', label: 'Beginner' },
@@ -203,9 +205,8 @@ const SessionCreate: React.FC = () => {
                                 />
                                 <Select
                                     label="Mode"
-                                    name="mode"
                                     value={formData.mode}
-                                    onChange={handleChange}
+                                    onChange={(val) => handleSelectChange('mode', val)}
                                     required
                                     options={[
                                         { value: 'OFFLINE', label: 'Offline' },
@@ -252,8 +253,8 @@ const SessionCreate: React.FC = () => {
                                     <Select
                                         label="Block"
                                         value={selectedBlock}
-                                        onChange={(e) => {
-                                            setSelectedBlock(e.target.value);
+                                        onChange={(val) => {
+                                            setSelectedBlock(String(val));
                                             setSelectedLSGI('');
                                             setFormData(prev => ({ ...prev, ward: '' }));
                                         }}
@@ -263,8 +264,8 @@ const SessionCreate: React.FC = () => {
                                     <Select
                                         label="LSGI"
                                         value={selectedLSGI}
-                                        onChange={(e) => {
-                                            setSelectedLSGI(e.target.value);
+                                        onChange={(val) => {
+                                            setSelectedLSGI(String(val));
                                             setFormData(prev => ({ ...prev, ward: '' }));
                                         }}
                                         required
@@ -273,9 +274,8 @@ const SessionCreate: React.FC = () => {
                                     />
                                     <Select
                                         label="Ward"
-                                        name="ward"
                                         value={formData.ward}
-                                        onChange={handleChange}
+                                        onChange={(val) => handleSelectChange('ward', val)}
                                         required
                                         disabled={!selectedLSGI}
                                         options={wards.map(w => ({ value: w.id, label: `Ward ${w.number}: ${w.name}` }))}

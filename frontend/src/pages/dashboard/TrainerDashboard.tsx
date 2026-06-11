@@ -141,7 +141,7 @@ const TrainerDashboard: React.FC = () => {
                             title={t('dashboard.completed')}
                             value={completedSessions}
                             icon={CheckSquare}
-                            color="purple"
+                            color="blue"
                             description={t('dashboard.sessions_conducted')}
                         />
                     </div>

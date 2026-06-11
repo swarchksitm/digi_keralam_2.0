@@ -10,6 +10,7 @@ import { Plus, Trash2, UserCog, Search, Eye, CheckCircle, XCircle } from 'lucide
 import api from '../../api/client';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getLocalizedName } from '../../utils/languageUtils';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 export const TrainerManager: React.FC = () => {
     const { user } = useAuthStore();
@@ -23,6 +24,8 @@ export const TrainerManager: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
+    const [successModal, setSuccessModal] = useState<{ isOpen: boolean; title: string; message: string }>({ isOpen: false, title: "Success", message: "" });
     const [selectedLsgiFilter, setSelectedLsgiFilter] = useState<number | 'ALL'>('ALL');
     const [activeTab, setActiveTab] = useState<'ACTIVE' | 'PENDING'>('ACTIVE');
 
@@ -158,6 +161,17 @@ export const TrainerManager: React.FC = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
 
+    // Qualification Options
+    const QUALIFICATION_OPTIONS = [
+        { value: 'SSLC', label: 'SSLC' },
+        { value: 'HSE', label: 'HSE' },
+        { value: 'DIPLOMA', label: 'DIPLOMA' },
+        { value: 'UG', label: 'UG' },
+        { value: 'PG', label: 'PG' },
+        { value: 'PHD', label: 'PHD' },
+        { value: 'OTHER', label: 'OTHER' }
+    ];
+
     const handleEdit = (trainer: AdminUser) => {
         setFormData({
             username: trainer.username,
@@ -166,8 +180,9 @@ export const TrainerManager: React.FC = () => {
             last_name: trainer.last_name || '',
             email: trainer.email,
             phone: trainer.phone || '',
-            age: trainer.profile?.age,
-            highest_qualification: trainer.profile?.highest_qualification || '',
+            // Ensure age is set, even if 0 or null, default to undefined if truly missing
+            age: (trainer.profile?.age !== undefined && trainer.profile?.age !== null) ? trainer.profile.age : undefined,
+            highest_qualification: trainer.profile?.highest_qualification || 'SSC', // Default to first option if missing? Or keep empty? Let's generic it.
             // @ts-ignore
             lsgi_id: trainer.profile?.lsgi?.id || getRestrictedLsgiId(),
             // @ts-ignore
@@ -196,14 +211,22 @@ export const TrainerManager: React.FC = () => {
                 if (!payload.password) delete payload.password; // Don't send empty password
 
                 await UserService.updateAdminUser(editId, payload);
-                alert("Trainer updated successfully!");
+                setSuccessModal({
+                    isOpen: true,
+                    title: t('common.success'),
+                    message: "Trainer updated successfully!"
+                });
             } else {
                 // Create
                 await api.post('/auth/admin-users/', {
                     ...formData,
                     role: 'LSGI_FIELD_TRAINER'
                 });
-                alert("Trainer created successfully!");
+                setSuccessModal({
+                    isOpen: true,
+                    title: t('common.success'),
+                    message: "Trainer created successfully!"
+                });
             }
 
             await loadData();
@@ -234,12 +257,13 @@ export const TrainerManager: React.FC = () => {
         setEditId(null);
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this trainer?")) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmation.id) return;
         try {
-            await UserService.deleteAdminUser(id);
-            setTrainers(prev => prev.filter(u => u.id !== id));
-            setPendingTrainers(prev => prev.filter(u => u.id !== id));
+            await UserService.deleteAdminUser(deleteConfirmation.id);
+            setTrainers(prev => prev.filter(u => u.id !== deleteConfirmation.id));
+            setPendingTrainers(prev => prev.filter(u => u.id !== deleteConfirmation.id));
+            setDeleteConfirmation({ isOpen: false, id: null });
         } catch (error) {
             alert("Failed to delete trainer");
         }
@@ -268,7 +292,11 @@ export const TrainerManager: React.FC = () => {
             setIsApproveModalOpen(false);
             setTrainerToApprove(null);
             setSelectedApproveWardIds([]);
-            alert("Trainer approved successfully!");
+            setSuccessModal({
+                isOpen: true,
+                title: t('common.success'),
+                message: "Trainer approved successfully!"
+            });
         } catch (error) {
             console.error("Failed to approve trainer", error);
             alert("Failed to approve trainer");
@@ -395,7 +423,7 @@ export const TrainerManager: React.FC = () => {
                             <tr key={trainer.id} className="hover:bg-gray-50/50">
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-full bg-[#193756] text-white flex items-center justify-center">
                                             <UserCog className="h-4 w-4" />
                                         </div>
                                         <div>
@@ -455,7 +483,7 @@ export const TrainerManager: React.FC = () => {
                                                     <span className="text-xs font-medium">Approve</span>
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(trainer.id)}
+                                                    onClick={() => setDeleteConfirmation({ isOpen: true, id: trainer.id })}
                                                     className="p-1.5 text-red-600 hover:bg-red-50 rounded-full transition-colors flex items-center gap-1"
                                                     title="Reject"
                                                 >
@@ -481,7 +509,10 @@ export const TrainerManager: React.FC = () => {
                                                 >
                                                     <UserCog className="h-4 w-4" />
                                                 </button>
-                                                <button onClick={() => handleDelete(trainer.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                                <button
+                                                    onClick={() => setDeleteConfirmation({ isOpen: true, id: trainer.id })}
+                                                    className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                                                >
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </>
@@ -562,7 +593,13 @@ export const TrainerManager: React.FC = () => {
                                     <Input label={t('dashboard.phone')} value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} required />
                                     <Input label={t('dashboard.age')} type="number" value={formData.age || ''} onChange={e => setFormData({ ...formData, age: Number(e.target.value) })} required />
                                 </div>
-                                <Input label={t('dashboard.highest_qualification')} value={formData.highest_qualification} onChange={e => setFormData({ ...formData, highest_qualification: e.target.value })} required />
+                                <Select
+                                    label={t('dashboard.highest_qualification')}
+                                    value={formData.highest_qualification}
+                                    onChange={val => setFormData({ ...formData, highest_qualification: val })}
+                                    options={QUALIFICATION_OPTIONS}
+                                    required
+                                />
                             </div>
                         </div>
 
@@ -684,6 +721,28 @@ export const TrainerManager: React.FC = () => {
                     </div>
                 </form>
             </Modal>
+
+
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ isOpen: false, id: null })}
+                onConfirm={handleDelete}
+                title={t('dashboard.confirm_delete_trainer')}
+                message={t('dashboard.warning_delete_trainer')}
+                variant="danger"
+            />
+
+            {/* Success Modal */}
+            <ConfirmationModal
+                isOpen={successModal.isOpen}
+                onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+                onConfirm={() => setSuccessModal({ ...successModal, isOpen: false })}
+                title={successModal.title}
+                message={successModal.message}
+                variant="success"
+                confirmLabel="OK"
+                singleButton={true}
+            />
 
             {/* Approve Modal */}
             <Modal isOpen={isApproveModalOpen} onClose={() => setIsApproveModalOpen(false)} title="Approve & Assign Wards" size="md">

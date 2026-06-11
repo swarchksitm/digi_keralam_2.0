@@ -4,12 +4,15 @@ import { UserService, type AdminUser } from '../../services/userService';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Modal } from '../ui/Modal';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { Plus, Trash2, UserCog, Search } from 'lucide-react';
 import api from '../../api/client';
 import { useAuthStore } from '../../auth/store';
 import { LocationService, type LSGI } from '../../services/locationService';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export const MasterTrainerManager: React.FC = () => {
+    const { t } = useLanguage();
     const { user } = useAuthStore();
     const [trainers, setTrainers] = useState<AdminUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +20,8 @@ export const MasterTrainerManager: React.FC = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
+    const [successModal, setSuccessModal] = useState<{ isOpen: boolean; title: string; message: string }>({ isOpen: false, title: "Success", message: "" });
 
     // District Admin Features
     const [lsgis, setLsgis] = useState<LSGI[]>([]);
@@ -156,10 +161,18 @@ export const MasterTrainerManager: React.FC = () => {
 
             if (editingId) {
                 await api.patch(`/auth/admin-users/${editingId}/`, payload);
-                alert("Master Trainer updated successfully!");
+                setSuccessModal({
+                    isOpen: true,
+                    title: t('common.success'),
+                    message: "Master Trainer updated successfully!"
+                });
             } else {
                 await api.post('/auth/admin-users/', payload);
-                alert("Master Trainer created successfully!");
+                setSuccessModal({
+                    isOpen: true,
+                    title: t('common.success'),
+                    message: "Master Trainer created successfully!"
+                });
             }
 
             await loadData();
@@ -197,11 +210,12 @@ export const MasterTrainerManager: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("Are you sure you want to delete this master trainer?")) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmation.id) return;
         try {
-            await UserService.deleteAdminUser(id);
-            setTrainers(prev => prev.filter(u => u.id !== id));
+            await UserService.deleteAdminUser(deleteConfirmation.id);
+            setTrainers(prev => prev.filter(u => u.id !== deleteConfirmation.id));
+            setDeleteConfirmation({ isOpen: false, id: null });
         } catch (error) {
             alert("Failed to delete trainer");
         }
@@ -271,7 +285,7 @@ export const MasterTrainerManager: React.FC = () => {
                             <tr key={trainer.id} className="hover:bg-gray-50/50">
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-full bg-[#193756] text-white flex items-center justify-center">
                                             <UserCog className="h-4 w-4" />
                                         </div>
                                         <div>
@@ -281,7 +295,7 @@ export const MasterTrainerManager: React.FC = () => {
                                     </div>
                                 </td>
                                 <td className="px-4 py-3">
-                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-700">
+                                    <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#193756]/10 text-[#193756]">
                                         LSGI Level
                                     </span>
                                 </td>
@@ -299,7 +313,11 @@ export const MasterTrainerManager: React.FC = () => {
                                             >
                                                 <UserCog className="h-4 w-4" />
                                             </button>
-                                            <button onClick={() => handleDelete(trainer.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                                            <button
+                                                onClick={() => setDeleteConfirmation({ isOpen: true, id: trainer.id })}
+                                                className="text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"
+                                                title="Delete Trainer"
+                                            >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
@@ -396,6 +414,27 @@ export const MasterTrainerManager: React.FC = () => {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ isOpen: false, id: null })}
+                onConfirm={handleDelete}
+                title={t('dashboard.confirm_delete_master_trainer')}
+                message={t('dashboard.warning_delete_master_trainer')}
+                variant="danger"
+            />
+
+            {/* Success Modal */}
+            <ConfirmationModal
+                isOpen={successModal.isOpen}
+                onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+                onConfirm={() => setSuccessModal({ ...successModal, isOpen: false })}
+                title={successModal.title}
+                message={successModal.message}
+                variant="success"
+                confirmLabel="OK"
+                singleButton={true}
+            />
         </div>
     );
 };

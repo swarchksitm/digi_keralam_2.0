@@ -41,7 +41,7 @@ export const DistrictAdminDashboard: React.FC<DistrictDashboardProps> = ({ stats
                                     title={t('dashboard.total_attendees')}
                                     value={stats.total_attendees || 0}
                                     icon={UserCog}
-                                    color="orange"
+                                    color="green"
                                     description={t('dashboard.desc_citizens_attended')}
                                 />
                                 <StatsCard
@@ -55,7 +55,7 @@ export const DistrictAdminDashboard: React.FC<DistrictDashboardProps> = ({ stats
                                     title={t('dashboard.total_sessions')}
                                     value={stats.total_sessions}
                                     icon={CheckCircle}
-                                    color="purple"
+                                    color="blue"
                                     description={t('dashboard.desc_scheduled_completed')}
                                 />
                                 <StatsCard
@@ -71,21 +71,21 @@ export const DistrictAdminDashboard: React.FC<DistrictDashboardProps> = ({ stats
                         {/* Quick Actions / Shortcuts */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('LSGI')}>
-                                <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <Map className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.lsgi_management')}</h3>
                                 <p className="text-sm text-gray-500">{t('dashboard.manage_lsgis')}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('MASTER_TRAINERS')}>
-                                <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <UserCog className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.master_trainers')}</h3>
                                 <p className="text-sm text-gray-500">{t('dashboard.create_master_trainers')}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('SESSIONS')}>
-                                <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <CheckCircle className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.training_sessions')}</h3>

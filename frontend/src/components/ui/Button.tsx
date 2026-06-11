@@ -25,11 +25,11 @@ export const Button: React.FC<ButtonProps> = ({
     const baseStyles = 'inline-flex items-center justify-center rounded-full font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none';
 
     const variants = {
-        primary: 'bg-primary-600 text-white hover:bg-primary-700 focus-visible:ring-primary-500',
-        secondary: 'bg-secondary-600 text-white hover:bg-secondary-700 focus-visible:ring-secondary-500',
+        primary: 'bg-[#4edb80] text-white hover:opacity-90 focus-visible:ring-[#4edb80]',
+        secondary: 'bg-[#0f9ff5] text-white hover:opacity-90 focus-visible:ring-[#0f9ff5]',
         outline: 'border border-gray-300 bg-transparent hover:bg-gray-100 text-gray-700',
         ghost: 'hover:bg-gray-100 text-gray-700',
-        danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+        danger: 'bg-red-600 text-white hover:opacity-90 focus-visible:ring-red-500',
     };
 
     const sizes = {

@@ -11,6 +11,7 @@ import { Modal } from '../ui/Modal';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 export const LSGIManager: React.FC = () => {
     const { t, language } = useLanguage();
@@ -19,6 +20,7 @@ export const LSGIManager: React.FC = () => {
     const [blocks, setBlocks] = useState<Block[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
 
     // Auth Context for Role-Based Locking
     const { user } = useAuthStore();
@@ -144,11 +146,12 @@ export const LSGIManager: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm(t('dashboard.confirm_delete_lsgi'))) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmation.id) return;
         try {
-            await LocationService.deleteLSGI(id);
-            setLsgis(prev => prev.filter(item => item.id !== id));
+            await LocationService.deleteLSGI(deleteConfirmation.id);
+            setLsgis(prev => prev.filter(item => item.id !== deleteConfirmation.id));
+            setDeleteConfirmation({ isOpen: false, id: null });
         } catch (error) {
             console.error("Failed to delete", error);
             alert(t('dashboard.error_delete_lsgi'));
@@ -349,9 +352,9 @@ export const LSGIManager: React.FC = () => {
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium 
-                                        ${item.lsgi_type === 'GP' ? 'bg-green-50 text-green-700' :
-                                                item.lsgi_type === 'MUNICIPALITY' ? 'bg-blue-50 text-blue-700' :
-                                                    'bg-purple-50 text-purple-700'}`}>
+                                        ${item.lsgi_type === 'GP' ? 'bg-[#4edb80]/10 text-[#15803d]' :
+                                                item.lsgi_type === 'MUNICIPALITY' ? 'bg-[#193756]/10 text-[#193756]' :
+                                                    'bg-[#193756]/10 text-[#193756]'}`}>
                                             {item.lsgi_type}
                                         </span>
                                     </td>
@@ -367,7 +370,7 @@ export const LSGIManager: React.FC = () => {
                                                 <Pencil className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(item.id)}
+                                                onClick={() => setDeleteConfirmation({ isOpen: true, id: item.id })}
                                                 className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -515,6 +518,15 @@ export const LSGIManager: React.FC = () => {
                     </div>
                 </form>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ isOpen: false, id: null })}
+                onConfirm={handleDelete}
+                title={t('dashboard.confirm_delete_lsgi')}
+                message={t('dashboard.warning_delete_lsgi')}
+                variant="danger"
+            />
         </div>
     );
 };

@@ -43,8 +43,8 @@ export const SessionList: React.FC<SessionListProps> = ({
                                 <CardTitle className="text-lg font-bold text-primary-900 leading-tight">
                                     {session.title}
                                 </CardTitle>
-                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${session.status === 'SCHEDULED' ? 'bg-green-100 text-green-700' :
-                                    session.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                                <span className={`text-xs px-2 py-1 rounded-full font-medium ${session.status === 'SCHEDULED' ? 'bg-[#193756]/10 text-[#193756]' :
+                                    session.status === 'COMPLETED' ? 'bg-[#4edb80]/10 text-[#15803d]' : 'bg-red-50 text-red-600'
                                     }`}>
                                     {session.status}
                                 </span>
@@ -98,7 +98,7 @@ export const SessionList: React.FC<SessionListProps> = ({
                                                 href={getMediaUrl(res.file)}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="flex items-center gap-2 text-xs text-blue-600 hover:underline p-1 hover:bg-blue-50 rounded"
+                                                className="flex items-center gap-2 text-xs text-[#193756] hover:underline p-1 hover:bg-[#193756]/10 rounded"
                                             >
                                                 <FileText className="h-3 w-3" />
                                                 {res.title || 'View Document'}

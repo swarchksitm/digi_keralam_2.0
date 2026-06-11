@@ -27,16 +27,16 @@ const Landing: React.FC = () => {
             {/* Hero Section */}
             <main id="main-content">
                 <section className="relative overflow-hidden bg-white py-24 sm:py-32">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-100 via-white to-white opacity-60"></div>
+                    <div className="absolute inset-0 bg-primary-50 opacity-60"></div>
                     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                         <div className="max-w-4xl mx-auto">
-                            <h1 className="text-5xl sm:text-7xl font-bold text-gray-900 tracking-tight leading-tight mb-8">
-                                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-700 to-primary-500">
+                            <h1 className="text-5xl sm:text-7xl font-bold text-primary-900 tracking-tight leading-tight mb-8">
+                                <span className="block text-primary-900">
                                     {t('landing.hero_title_1')}
                                 </span>
                                 {t('landing.hero_title_2')}
                             </h1>
-                            <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+                            <p className="text-xl text-primary-600 mb-10 leading-relaxed max-w-2xl mx-auto">
                                 {t('landing.hero_subtitle')}
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -61,7 +61,7 @@ const Landing: React.FC = () => {
                                     muted
                                     loop
                                     playsInline
-                                    poster="/images/dk-logo.png"
+                                    poster="/images/digikeralam2.0.svg"
                                 >
                                     <source src="/videos/mascot.mp4" type="video/mp4" />
                                     Your browser does not support the video tag.
@@ -89,8 +89,8 @@ const Landing: React.FC = () => {
 
                     <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-8">
                         {/* Pillar 1 */}
-                        <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300">
-                            <div className="h-14 w-14 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+                        <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300 group">
+                            <div className="h-14 w-14 bg-[#193756] text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20 transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
                                 <Shield className="h-7 w-7" />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('landing.pillar_1_title')}</h3>
@@ -100,8 +100,8 @@ const Landing: React.FC = () => {
                         </div>
 
                         {/* Pillar 2 */}
-                        <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300">
-                            <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-purple-500/20">
+                        <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300 group">
+                            <div className="h-14 w-14 bg-[#193756] text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20 transform transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3">
                                 <Brain className="h-7 w-7" />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('landing.pillar_2_title')}</h3>
@@ -111,8 +111,8 @@ const Landing: React.FC = () => {
                         </div>
 
                         {/* Pillar 3 */}
-                        <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300">
-                            <div className="h-14 w-14 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-green-500/20">
+                        <div className="glass-card p-8 hover:-translate-y-1 transition-transform duration-300 group">
+                            <div className="h-14 w-14 bg-[#193756] text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20 transform transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
                                 <Lightbulb className="h-7 w-7" />
                             </div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('landing.pillar_3_title')}</h3>

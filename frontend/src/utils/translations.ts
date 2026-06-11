@@ -19,7 +19,11 @@ export const translations = {
             actions: "Actions",
             add_new: "Add New",
             create: "Create",
-            optional: "Optional"
+            optional: "Optional",
+            confirm_delete: "Delete Item",
+            no_keep_it: "No, keep it",
+            yes_delete: "Yes, Delete!",
+            warning_delete: "You're going to delete this item. Are you sure?"
         },
         nav: {
             home: "Home",
@@ -61,11 +65,13 @@ export const translations = {
             // LSGI Dashboard
             lsgi_dashboard: "LSGI Dashboard",
             desc_lsgi_dashboard: "Manage trainers and sessions for your Local Self Government Institution.",
+            create_master_trainers: "Create Master Trainers",
             manage_master_trainers: "Manage Master Trainers",
             desc_manage_master_trainers: "Create and manage District Master Trainers.",
             view_local_trainers: "View Local Trainers",
             desc_view_local_trainers: "View Field Trainers created by Master Trainers.",
             title_training_sessions: "Training Sessions",
+            manage_sessions: "Manage Sessions",
             desc_manage_sessions_attendance: "Manage sessions and attendance.",
 
             // LSGI Manager
@@ -97,6 +103,7 @@ export const translations = {
             error_save_lsgi: "Failed to save changes. Please try again.",
             type_custom_name: "Type Custom Name...",
             no_lsgis_found: "No LSGIs found matching your criteria.",
+            warning_delete_lsgi: "Are you sure you want to delete this LSGI? This will detach any associated admin.",
 
             // Session Manager
             title_schedule_session: "Schedule Session",
@@ -133,6 +140,12 @@ export const translations = {
             confirm_assignment: "Confirm Assignment",
             select_later: "Select Later (Pending)",
             view_document: "View Document",
+            warning_delete_session: "Are you sure you want to delete this session? This action cannot be undone.",
+            view_attendees: "View Attendees",
+            confirm_delete_master_trainer: "Delete Master Trainer",
+            warning_delete_master_trainer: "Are you sure you want to delete this Master Trainer? This action cannot be undone.",
+            confirm_delete_trainer: "Delete Trainer",
+            warning_delete_trainer: "Are you sure you want to delete this Trainer? This action cannot be undone.",
 
             // User Management
             manage_access: "Manage access",
@@ -154,6 +167,7 @@ export const translations = {
             placeholder_password: "Set strong password",
             error_delete_user: "Failed to delete user",
             error_create_user: "Failed to create user",
+            warning_delete_user: "You're going to delete this user. This action cannot be undone.",
 
             // Trainer Dashboard
             trainer_dashboard: "Trainer Dashboard",
@@ -251,6 +265,7 @@ export const translations = {
             managed_lsgis: "Managed LSGIs",
             add_now: "Add Now",
             pending_lsgis: "Needs Admin",
+            assigned_lsgis: "Assigned LSGIs",
             type_gp: "Grama Panchayat",
             type_municipality: "Municipality",
             type_corporation: "Corporation",
@@ -273,7 +288,7 @@ export const translations = {
             pillars_desc: "Our comprehensive curriculum covers essential aspects of modern digital life.",
             pillar_1_title: "Safe Tech",
             pillar_1_desc: "Identify and report scams, understand cyber hygiene, and protect your digital identity securely.",
-            pillar_2_title: "AI Education",
+            pillar_2_title: "AI Literacy",
             pillar_2_desc: "Understand the basics of Artificial Intelligence and how you can use simple AI tools in daily life.",
             pillar_3_title: "DEED",
             pillar_3_desc: "Digitalisation of Every Essential Document. Learn to use digital tools for livelihood."
@@ -299,7 +314,11 @@ export const translations = {
             actions: "നടപടികൾ",
             add_new: "പുതിയത് ചേർക്കുക",
             create: "സൃഷ്ടിക്കുക",
-            optional: "ഓപ്ഷണൽ"
+            optional: "ഓപ്ഷണൽ",
+            confirm_delete: "ഇനം നീക്കം ചെയ്യുക",
+            no_keep_it: "വേണ്ട, സൂക്ഷിക്കുക",
+            yes_delete: "അതെ, നീക്കം ചെയ്യുക",
+            warning_delete: "നിങ്ങൾ ഈ ഇനം നീക്കം ചെയ്യാൻ പോകുന്നു. ഉറപ്പാണോ?"
         },
         nav: {
             home: "ഹോം",
@@ -408,6 +427,7 @@ export const translations = {
             error_save_lsgi: "മാറ്റങ്ങൾ സേവ് ചെയ്യുന്നത് പരാജയപ്പെട്ടു. വീണ്ടും ശ്രമിക്കുക.",
             type_custom_name: "കസ്റ്റം പേര് ടൈപ്പ് ചെയ്യുക...",
             no_lsgis_found: "നിങ്ങൾ തിരഞ്ഞ മാനദണ്ഡങ്ങൾക്കനുസരിച്ചുള്ള LSGI-കൾ കണ്ടെത്തിയില്ല.",
+            warning_delete_lsgi: "ഈ LSGI നീക്കം ചെയ്യാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുവോ? അഡ്മിൻ ബന്ധം വിച്ഛേദിക്കപ്പെടും.",
 
             // Session Manager
             title_schedule_session: "പരിശീലനം ഷെഡ്യൂൾ ചെയ്യുക",
@@ -444,6 +464,12 @@ export const translations = {
             confirm_assignment: "അസൈൻമെന്റ് സ്ഥിരീകരിക്കുക",
             select_later: "പിന്നീട് തിരഞ്ഞെടുക്കുക (Pending)",
             view_document: "രേഖ കാണുക",
+            warning_delete_session: "ഈ സെഷൻ നീക്കം ചെയ്യാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുവോ? ഈ പ്രവർത്തനം തിരിച്ചെടുക്കാനാവില്ല.",
+            view_attendees: "പങ്കെടുത്തവരെ കാണുക",
+            confirm_delete_master_trainer: "മാസ്റ്റർ ട്രെയിനറെ നീക്കം ചെയ്യുക",
+            warning_delete_master_trainer: "ഈ മാസ്റ്റർ ട്രെയിനറെ നീക്കം ചെയ്യാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുവോ?",
+            confirm_delete_trainer: "ട്രെയിനറെ നീക്കം ചെയ്യുക",
+            warning_delete_trainer: "ഈ ട്രെയിനറെ നീക്കം ചെയ്യാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുവോ?",
 
             // User Management
             manage_access: "ആക്സസ് നിയന്ത്രിക്കുക",
@@ -465,6 +491,7 @@ export const translations = {
             placeholder_password: "ശക്തമായ പാസ്‌വേഡ് നൽകുക",
             error_delete_user: "ഉപയോക്താവിനെ നീക്കം ചെയ്യുന്നത് പരാജയപ്പെട്ടു",
             error_create_user: "ഉപയോക്താവിനെ സൃഷ്ടിക്കുന്നത് പരാജയപ്പെട്ടു",
+            warning_delete_user: "നിങ്ങൾ ഈ ഉപയോക്താവിനെ നീക്കം ചെയ്യാൻ പോകുന്നു. ഈ പ്രവർത്തനം തിരിച്ചെടുക്കാനാവില്ല.",
 
             // Trainer Dashboard
             trainer_dashboard: "ട്രെയിനർ ഡാഷ്ബോർഡ്",
@@ -530,8 +557,8 @@ export const translations = {
             managed_lsgis: "കൈകാര്യം ചെയ്യുന്നവ (Managed)",
             add_now: "ഇപ്പോൾ ചേർക്കുക",
             pending_lsgis: "തീർപ്പുകൽപ്പിക്കാത്തവ (Pending)",
-            assigned_wards: "നിയോഗിക്കപ്പെട്ട വാർഡുകൾ",
-            no_wards_assigned: "വാർഡുകൾ നിയോഗിച്ചിട്ടില്ല",
+            assigned_lsgis: "അനുവദിച്ച തദ്ദേശ സ്ഥാപനങ്ങൾ",
+
             type_gp: "ഗ്രാമപഞ്ചായത്ത്",
             type_municipality: "നഗരസഭ (Municipality)",
             type_corporation: "കോർപ്പറേഷൻ",
@@ -556,7 +583,7 @@ export const translations = {
             pillars_desc: "ആധുനിക ഡിജിറ്റൽ ജീവിതത്തിന്റെ പ്രധാന വശങ്ങൾ ഉൾക്കൊള്ളുന്നതാണ് ഞങ്ങളുടെ പാഠ്യപദ്ധതി.",
             pillar_1_title: "സുരക്ഷിത സാങ്കേതികവിദ്യ (Safe Tech)",
             pillar_1_desc: "തട്ടിപ്പുകൾ തിരിച്ചറിയുക, റിപ്പോർട്ട് ചെയ്യുക, ഡിജിറ്റൽ സുരക്ഷ ഉറപ്പാക്കുക.",
-            pillar_2_title: "എഐ വിദ്യാഭ്യാസം (AI Education)",
+            pillar_2_title: "എഐ സാക്ഷരത  (AI Literacy )",
             pillar_2_desc: "നിർമ്മിത ബുദ്ധിയുടെ (AI) അടിസ്ഥാനങ്ങൾ മനസ്സിലാക്കുക, ദൈനംദിന ജീവിതത്തിൽ ലളിതമായ എഐ ടൂളുകൾ ഉപയോഗിക്കാൻ പഠിക്കുക.",
             pillar_3_title: "ഡീഡ് (DEED)",
             pillar_3_desc: "എല്ലാ അവശ്യ രേഖകളുടെയും ഡിജിറ്റലൈസേഷൻ. ഉപജീവനത്തിനായി ഡിജിറ്റൽ ടൂളുകൾ ഉപയോഗിക്കാൻ പഠിക്കുക."

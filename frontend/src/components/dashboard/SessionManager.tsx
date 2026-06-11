@@ -14,6 +14,7 @@ import { getMediaUrl } from '../../utils/url';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { getLocalizedName } from '../../utils/languageUtils';
 import { AttendanceManager } from './AttendanceManager';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 interface Session {
     id: number;
@@ -49,6 +50,7 @@ export const SessionManager: React.FC = () => {
     const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [deleteConfirmation, setDeleteConfirmation] = useState<{ isOpen: boolean; id: number | null }>({ isOpen: false, id: null });
 
     const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -302,15 +304,16 @@ export const SessionManager: React.FC = () => {
         }
     };
 
-    const handleDelete = async (sessionId: number) => {
-        if (!confirm(t('dashboard.confirm_delete_session'))) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmation.id) return;
 
         // Optimistic UI or loading state? Global loading is simplest
         setIsLoading(true);
         try {
-            await api.delete(`/training/sessions/${sessionId}/`);
+            await api.delete(`/training/sessions/${deleteConfirmation.id}/`);
             // Remove locally to avoid full reload delay
-            setSessions(prev => prev.filter(s => s.id !== sessionId));
+            setSessions(prev => prev.filter(s => s.id !== deleteConfirmation.id));
+            setDeleteConfirmation({ isOpen: false, id: null });
             alert(t('dashboard.success_session_delete'));
         } catch (error: any) {
             console.error("Failed to delete session", error);
@@ -460,8 +463,8 @@ export const SessionManager: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className={`px-2 py-1 rounded text-xs font-semibold ${session.status === 'SCHEDULED' ? 'bg-blue-50 text-blue-700' :
-                                        session.status === 'COMPLETED' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                                    <span className={`px-2 py-1 rounded text-xs font-semibold ${session.status === 'SCHEDULED' ? 'bg-[#193756]/10 text-[#193756]' :
+                                        session.status === 'COMPLETED' ? 'bg-[#4edb80]/10 text-[#15803d]' : 'bg-gray-100 text-gray-600'
                                         }`}>
                                         {t(`dashboard.${session.status.toLowerCase()}`) || session.status}
                                     </span>
@@ -481,7 +484,7 @@ export const SessionManager: React.FC = () => {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleDelete(session.id);
+                                                    setDeleteConfirmation({ isOpen: true, id: session.id });
                                                 }}
                                                 className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                                                 title={t('dashboard.delete')}
@@ -721,6 +724,15 @@ export const SessionManager: React.FC = () => {
                     <Button variant="outline" onClick={() => setIsAttendanceModalOpen(false)}>{t('common.close')}</Button>
                 </div>
             </Modal>
+
+            <ConfirmationModal
+                isOpen={deleteConfirmation.isOpen}
+                onClose={() => setDeleteConfirmation({ isOpen: false, id: null })}
+                onConfirm={handleDelete}
+                title={t('dashboard.confirm_delete_session')}
+                message={t('dashboard.warning_delete_session')}
+                variant="danger"
+            />
         </div >
     );
 };

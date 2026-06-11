@@ -73,22 +73,22 @@ const Login: React.FC = () => {
 
             <div className="flex-1 flex flex-col md:flex-row relative">
                 {/* Left Side - Professional/Branding */}
-                <div className="hidden md:flex md:w-1/2 lg:w-5/12 bg-primary-900 flex-col justify-between p-12 text-white relative overflow-hidden">
+                <div className="hidden md:flex md:w-1/2 lg:w-5/12 bg-[#193756] flex-col justify-between p-12 text-white relative overflow-hidden">
                     {/* Abstract Pattern overlay */}
                     <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-950 opacity-90"></div>
+                    {/* No Gradient - Strict Solid Color */}
 
                     <div className="relative z-10 pt-8">
-                        <div className="flex items-center gap-4 mb-8">
+                        <div className="flex items-center gap-4 mb-8 bg-white/10 w-fit p-3 rounded-xl">
                             <img src="/images/kerala-govt.png" alt="Govt Logo" className="h-20 w-auto" />
                             <div className="h-12 w-px bg-white/20"></div>
                             <img src="/images/ksitm.png" alt="KSITM Logo" className="h-14 w-auto" />
                         </div>
 
-                        <h1 className="text-4xl font-bold font-sans leading-tight mb-6 tracking-tight">
+                        <h1 className="text-4xl font-bold font-sans leading-tight mb-6 tracking-tight text-white">
                             Digi Keralam 2.0
                         </h1>
-                        <p className="text-primary-100 text-lg leading-relaxed max-w-md font-light text-justify">
+                        <p className="text-white/90 text-lg leading-relaxed max-w-md font-light text-justify">
                             The official unified portal for the Kerala Digital Literacy Mission. Empowering citizens through technology, streamlined administration, and verified training programs.
                         </p>
                     </div>
@@ -100,7 +100,7 @@ const Login: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="font-semibold text-lg text-white">Secure Authentication</h3>
-                                <p className="text-primary-200 text-sm mt-1">Enterprise-grade security standards for data protection.</p>
+                                <p className="text-white/80 text-sm mt-1">Enterprise-grade security standards for data protection.</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-4">
@@ -109,12 +109,12 @@ const Login: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="font-semibold text-lg text-white">Real-time Monitoring</h3>
-                                <p className="text-primary-200 text-sm mt-1">Comprehensive analytics across wards and districts.</p>
+                                <p className="text-white/80 text-sm mt-1">Comprehensive analytics across wards and districts.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="relative z-10 text-xs text-primary-400/80 font-medium">
+                    <div className="relative z-10 text-xs text-white/60 font-medium">
                         &copy; {new Date().getFullYear()} Government of Kerala. All rights reserved.
                     </div>
                 </div>

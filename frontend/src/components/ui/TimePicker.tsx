@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, ChevronUp, ChevronDown, X } from 'lucide-react';
+import { Clock, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from './Button';
 
 interface TimePickerProps {
@@ -109,7 +109,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({ value, onChange, label }
         setMinute(m.toString().padStart(2, '0'));
     };
 
-    const togglePeriod = () => setPeriod(p => p === 'AM' ? 'PM' : 'AM');
+
 
     return (
         <div className="relative" ref={containerRef}>

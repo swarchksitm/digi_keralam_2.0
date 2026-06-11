@@ -120,7 +120,7 @@ const SessionAssign: React.FC = () => {
                             <Select
                                 label="Select Field Trainer"
                                 value={selectedTrainer}
-                                onChange={(e) => setSelectedTrainer(e.target.value)}
+                                onChange={(val) => setSelectedTrainer(String(val))}
                                 options={trainers.map(t => ({
                                     value: t.id,
                                     label: `${t.first_name} ${t.last_name} (${t.username})`

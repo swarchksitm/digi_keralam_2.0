@@ -56,7 +56,7 @@ export const MasterTrainerDashboard: React.FC<MasterTrainerDashboardProps> = ({ 
                                 icon={MapPin}
                                 description={t('dashboard.desc_unique_wards')}
                                 trend="neutral"
-                                color="purple"
+                                color="blue"
                             />
                             <StatsCard
                                 title={t('dashboard.total_attendees')}
@@ -64,7 +64,7 @@ export const MasterTrainerDashboard: React.FC<MasterTrainerDashboardProps> = ({ 
                                 icon={Users}
                                 description={t('dashboard.desc_citizens_trained')}
                                 trend="up"
-                                color="orange"
+                                color="green"
                                 onClick={() => setActiveTab('SESSIONS')} // Navigate to sessions for details
                                 className="cursor-pointer hover:shadow-md transition-shadow"
                             />
@@ -76,7 +76,7 @@ export const MasterTrainerDashboard: React.FC<MasterTrainerDashboardProps> = ({ 
                                 className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                 onClick={() => setActiveTab('TRAINERS')}
                             >
-                                <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <Users className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('nav.trainers')}</h3>
@@ -87,7 +87,7 @@ export const MasterTrainerDashboard: React.FC<MasterTrainerDashboardProps> = ({ 
                                 className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                                 onClick={() => setActiveTab('SESSIONS')}
                             >
-                                <div className="h-10 w-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <Calendar className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.title_session_management')}</h3>

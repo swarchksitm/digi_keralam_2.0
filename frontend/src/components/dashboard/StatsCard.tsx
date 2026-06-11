@@ -9,16 +9,17 @@ interface StatsCardProps {
     icon: LucideIcon;
     description?: string;
     trend?: 'up' | 'down' | 'neutral';
-    color?: 'blue' | 'green' | 'purple' | 'orange';
+    color?: 'blue' | 'green';
     onClick?: () => void;
     className?: string;
 }
 
 const colorMap = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
+    blue: 'bg-[#193756] text-white shadow-md shadow-blue-900/10', // Primary Dark Blue (Solid)
+    green: 'bg-[#4edb80] text-white shadow-md shadow-green-500/20', // Accent Green (Solid)
+    // Legacy mapping
+    purple: 'bg-[#193756] text-white',
+    orange: 'bg-[#4edb80] text-white',
 };
 
 export const StatsCard: React.FC<StatsCardProps> = ({

@@ -75,7 +75,7 @@ export const LocalTrainerList: React.FC = () => {
                             <tr key={trainer.id} className="hover:bg-gray-50/50">
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <div className="h-8 w-8 rounded-full bg-[#193756] text-white flex items-center justify-center">
                                             <UserCog className="h-4 w-4" />
                                         </div>
                                         <div>

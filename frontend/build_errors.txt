@@ -1,0 +1,35 @@
+
+> frontend@0.0.0 build
+> tsc -b && vite build
+
+src/components/dashboard/UserManagement.tsx(22,12): error TS6133: 'isLoading' is declared but its value is never read.
+src/components/ui/TimePicker.tsx(2,41): error TS6133: 'X' is declared but its value is never read.
+src/components/ui/TimePicker.tsx(112,11): error TS6133: 'togglePeriod' is declared but its value is never read.
+src/pages/dashboard/LSGIDashboard.tsx(72,37): error TS2322: Type '"orange"' is not assignable to type '"blue" | "green" | undefined'.
+src/pages/dashboard/LSGIDashboard.tsx(79,37): error TS2322: Type '"purple"' is not assignable to type '"blue" | "green" | undefined'.
+src/pages/dashboard/StateAdminDashboard.tsx(36,82): error TS6133: 'propStats' is declared but its value is never read.
+src/pages/dashboard/TrainerDashboard.tsx(144,29): error TS2322: Type '"purple"' is not assignable to type '"blue" | "green" | undefined'.
+src/pages/sessions/SessionAssign.tsx(123,71): error TS2339: Property 'target' does not exist on type 'string | number'.
+  Property 'target' does not exist on type 'string'.
+src/pages/sessions/SessionCreate.tsx(181,37): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void' is not assignable to type '(value: string | number) => void'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'string | number' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+      Type 'string' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+src/pages/sessions/SessionCreate.tsx(196,37): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void' is not assignable to type '(value: string | number) => void'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'string | number' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+      Type 'string' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+src/pages/sessions/SessionCreate.tsx(208,37): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void' is not assignable to type '(value: string | number) => void'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'string | number' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+      Type 'string' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+src/pages/sessions/SessionCreate.tsx(256,64): error TS2339: Property 'target' does not exist on type 'string | number'.
+  Property 'target' does not exist on type 'string'.
+src/pages/sessions/SessionCreate.tsx(267,63): error TS2339: Property 'target' does not exist on type 'string | number'.
+  Property 'target' does not exist on type 'string'.
+src/pages/sessions/SessionCreate.tsx(278,41): error TS2322: Type '(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void' is not assignable to type '(value: string | number) => void'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'string | number' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+      Type 'string' is not assignable to type 'ChangeEvent<HTMLInputElement | HTMLSelectElement, Element>'.
+src/utils/translations.ts(533,13): error TS1117: An object literal cannot have multiple properties with the same name.
+src/utils/translations.ts(534,13): error TS1117: An object literal cannot have multiple properties with the same name.

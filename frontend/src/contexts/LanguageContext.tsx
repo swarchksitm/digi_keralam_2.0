@@ -24,23 +24,44 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [language]);
 
-    const t = (key: string) => {
+    const t = (key: string): string => {
         const keys = key.split('.');
-        let value: any = translations[language];
 
-        if (!value) {
-            return key;
-        }
-
-        for (const k of keys) {
-            if (value && typeof value === 'object' && k in value) {
-                value = value[k];
-            } else {
-                return key; // Fallback to key if not found
+        // Helper to get value from a translation object
+        const getValue = (obj: any, path: string[]) => {
+            let current = obj;
+            for (const k of path) {
+                if (current && typeof current === 'object' && k in current) {
+                    current = current[k];
+                } else {
+                    return undefined;
+                }
             }
+            return typeof current === 'string' ? current : undefined;
+        };
+
+        // 1. Try current language
+        let value = getValue(translations[language], keys);
+        if (value) return value;
+
+        // 2. Fallback to English if current is not English
+        if (language !== 'en') {
+            value = getValue(translations['en'], keys);
+            if (value) return value;
         }
 
-        return typeof value === 'string' ? value : key;
+        // 3. Log warning in development
+        if (import.meta.env.DEV) {
+            console.warn(`Missing translation key: ${key} in language: ${language}`);
+        }
+
+        // 4. Fallback to last part of key (readable format)
+        // e.g., 'dashboard.create_master_trainers' -> 'Create Master Trainers'
+        const lastPart = keys[keys.length - 1];
+        return lastPart
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
     };
 
     return (

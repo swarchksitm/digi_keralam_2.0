@@ -69,14 +69,14 @@ const LSGIDashboard: React.FC = () => {
                                     title={t('dashboard.total_attendance')}
                                     value={stats.total_attendees}
                                     icon={Users}
-                                    color="orange"
+                                    color="green"
                                     description={t('dashboard.desc_citizens_attended')}
                                 />
                                 <StatsCard
                                     title={t('dashboard.total_sessions')}
                                     value={stats.total_sessions}
                                     icon={CheckCircle}
-                                    color="purple"
+                                    color="blue"
                                     description={t('dashboard.desc_scheduled_completed')}
                                 />
                                 <StatsCard
@@ -92,21 +92,21 @@ const LSGIDashboard: React.FC = () => {
                         {/* Quick Actions / Shortcuts */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('MASTER_TRAINERS')}>
-                                <div className="h-10 w-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <UserCog className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.manage_master_trainers')}</h3>
                                 <p className="text-sm text-gray-500">{t('dashboard.desc_manage_master_trainers')}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('LOCAL_TRAINERS')}>
-                                <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <Users className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.view_local_trainers')}</h3>
                                 <p className="text-sm text-gray-500">{t('dashboard.desc_view_local_trainers')}</p>
                             </div>
                             <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => setActiveTab('SESSIONS')}>
-                                <div className="h-10 w-10 bg-green-50 text-green-600 rounded-lg flex items-center justify-center mb-4">
+                                <div className="h-10 w-10 bg-[#193756] text-white rounded-lg flex items-center justify-center mb-4">
                                     <CheckCircle className="h-6 w-6" />
                                 </div>
                                 <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.title_training_sessions')}</h3>
